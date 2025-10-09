@@ -188,7 +188,45 @@ Required items outstanding before promotion:
 | Add cash-settlement normative branch? | Evaluate need for settlement diversification | Low | 1.2.0 |
 | Introduce alias for future parameter rename | Dependent on upcoming enhancements | Low | 1.1.0+ |
 
-## 13. Change Log
+## 13. Test Vector Coverage
+The following coverage matrix links normative dimensions to test vector IDs.
+
+### 13.1 Dimension Coverage Matrix
+| Dimension | Values Covered | Test Vectors |
+|-----------|----------------|--------------|
+| coupon_memory | memory | N1, N2, N3, N5 |
+| coupon_memory | no-memory | N4 |
+| KI state | no KI | N1, N2, N4 |
+| KI state | KI (early) | N3 |
+| KI state | KI (equality edge) | N5 |
+| Coupon miss handling | none missed | N1 |
+| Coupon miss handling | single miss recovered (memory) | N2 |
+| Coupon miss handling | single miss forfeited (non-memory) | N4 |
+| Coupon miss handling | miss then KI then recovery | N3 |
+| Barrier edge condition | equality triggers KI | N5 |
+
+### 13.2 Scenario Interaction Highlights
+- Equality barrier condition (level == barrier) explicitly validated (N5).
+- Memory accumulation with later payout both in KI and non-KI states (N2 vs N3).
+- Difference between memory and non-memory forfeiture semantics (N2 vs N4).
+
+### 13.3 Gaps / Planned Future Vectors
+| Gap Category | Description | Planned Vector ID (proposed) | Target Version |
+|--------------|-------------|------------------------------|----------------|
+| Multiple consecutive misses | Two or more sequential coupon misses with later recovery | N6 (memory multi-miss) | 1.0.x |
+| Memory cap behavior | Enforce `memory_carry_cap_count` limit | N7 (memory-cap) | 1.1.0 |
+| Basket logic | Multi-underlying: KI triggered by any; coupon requires all | N8 (basket-baseline) | 1.1.0 |
+| Final level below redemption barrier | Stress where final < redemption barrier (currently still par) | N9 (final-below-barrier) | 1.0.x |
+| FX reference usage | Underlying currency differs from settlement currency | N10 (fx-cross) | 1.1.0 |
+| Alternative settlement | Cash-settlement (non-normative example) | EX1 (cash-settle) | 1.1.0 (non-normative) |
+| Alternative recovery | proportional-loss branch (illustrative) | EX2 (prop-loss) | 1.1.0 (non-normative) |
+| Memory + equality + final stress | Combine edge barrier + final < redemption barrier | N11 (edge-final-stress) | 1.1.0 |
+
+### 13.4 Coverage Statement
+Current normative set (N1–N5) provides baseline validation for: coupon memory mechanics (single accrual), KI detection (standard & equality), and divergence between memory and non-memory coupon forfeiture. Extended stress, multi-miss, basket, FX, and alternative economic outcome scenarios are explicitly deferred and enumerated for traceable closure.
+
+## 14. Change Log
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial baseline specification draft |
+| 1.0.0-doc-update | 2025-10-09 | siripong.s@yuanta.co.th | Added Test Vector Coverage section (documentation only) |
