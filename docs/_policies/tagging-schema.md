@@ -14,8 +14,15 @@ tags: [taxonomy, tags]
 
 # Tagging Schema
 
-## 1. Allowed doc_type Values
-`policy`, `process`, `requirement-set`, `use-case`, `business-rule`, `architecture`, `decision-record`, `interface-spec`, `glossary`, `playbook`, `lifecycle`, `reference`.
+## 1. Allowed doc_type Values (Updated)
+`policy`, `process`, `requirement-set`, `use-case`, `business-rule`, `architecture`, `decision-record`, `interface-spec`, `glossary`, `playbook`, `lifecycle`, `reference`, `template`, `product-spec`, `product-definition`, `test-vector`.
+
+## 1.1 New doc_type Definitions
+| doc_type | Description |
+|----------|-------------|
+| product-spec | Normative (or Proposed) versioned economic / technical specification of a financial product (e.g., FCN spec v1.0). |
+| product-definition | Business-facing illustrative description (non-normative) of product concept & high-level features. |
+| test-vector | Scenario / classification table used for validation & regression; subset may become normative. |
 
 ## 2. Classification Values
 `Public`, `Internal`, `Confidential`, `Restricted`.
