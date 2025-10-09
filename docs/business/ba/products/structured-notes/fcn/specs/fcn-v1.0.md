@@ -20,7 +20,12 @@ related:
   - ../../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../../sa/design-decisions/adr-004-parameter-alias-policy.md
 activation_checklist_issue: TBC
-normative_test_vector_set: TBC
+normative_test_vector_set:
+  - N1
+  - N2
+  - N3
+  - N4
+  - N5
 ---
 
 # Fixed Coupon Note (FCN) – Baseline Specification (v1.0)
@@ -118,6 +123,7 @@ Implementation Notes:
 - Redemption logic identical for KI and non-KI in baseline par-recovery; purpose is to keep v1.0 simple while allowing extension.
 
 ## 6. Taxonomy & Branch Inventory
+
 Declared taxonomy dimensions (see common/payoff_types.md):
 - barrier_type: down-in
 - settlement: physical-settlement
