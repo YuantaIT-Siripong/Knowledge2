@@ -1,0 +1,10 @@
+# CODEOWNERS: initial scaffold
+# Adjust entries as teams grow.
+
+/docs/_policies/     @YuantaIT-Siripong
+/docs/_templates/    @YuantaIT-Siripong
+/docs/business/ba/   @YuantaIT-Siripong
+/docs/business/sa/   @YuantaIT-Siripong
+/docs/lifecycle/     @YuantaIT-Siripong
+/docs/_reference/    @YuantaIT-Siripong
+/docs/playbooks/     @YuantaIT-Siripong
