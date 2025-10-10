@@ -1,199 +1,160 @@
 ---
-title: FCN v1.0 Domain Overview
-doc_type: product-overview
-role_primary: BA
-owner: siripong.s@yuanta.co.th
-approver: siripong.s@yuanta.co.th
+title: FCN v1.0 Overview & KPI Baselines
+doc_type: overview
 status: Draft
 version: 1.0.0
+owner: siripong.s@yuanta.co.th
+approver: siripong.s@yuanta.co.th
 created: 2025-10-10
 last_reviewed: 2025-10-10
-next_review: 2026-04-10
+next_review: 2026-01-10
 classification: Internal
-tags: [structured-notes, fcn, product-overview, v1.0, kpi]
+tags: [fcn, overview, kpi, governance, structured-notes, v1.0]
 related:
   - specs/fcn-v1.0.md
-  - validator-roadmap.md
+  - business-rules.md
   - er-fcn-v1.0.md
-  - manifest.yaml
-  - ../../common/governance.md
-  - ../../../sa/design-decisions/adr-003-fcn-version-activation.md
+  - ../../sa/handoff/domain-handoff-fcn-v1.0.md
+  - ../../sa/design-decisions/adr-003-fcn-version-activation.md
+  - ../../sa/design-decisions/adr-004-parameter-alias-policy.md
+  - ../../sa/design-decisions/dec-011-notional-precision.md
+  - ../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
-# FCN v1.0 Domain Overview
+# 1. Product Summary
 
-## 1. Purpose
+Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Knock-in (KI) monitoring determines protective vs. example (non-normative) settlement behavior. This overview consolidates domain context and establishes KPI baselines used by governance (ADR-003) to evaluate readiness for promotion (Draft → Proposed → Active).
 
-This document provides a high-level overview of the Fixed Coupon Note (FCN) v1.0 domain, including its scope, key features, stakeholders, and Key Performance Indicators (KPIs) for domain governance and operational excellence.
+# 2. Objectives
 
-## 2. Product Summary
+1. Provide a single accessible synopsis for stakeholders (Product, Risk, Engineering).
+2. Establish measurable KPI baselines for continuous improvement.
+3. Link KPIs to normative rules (e.g., BR-017 coverage, BR-019 precision) ensuring traceability.
+4. Enable earlier detection of specification or parameter quality regressions.
 
-The Fixed Coupon Note (FCN) v1.0 is a multi-underlying structured note paying periodic fixed coupons contingent on barrier conditions and offering conditional principal protection unless a knock-in (KI) event occurs. The baseline v1.0 specification covers:
+# 3. Stakeholders (Summary)
 
-- Single or basket (equal-weight) underlying support
-- Memory coupon feature (optional)
-- Down-in (knock-in) barrier monitored on discrete observation dates
-- Physical settlement with par-recovery mode (normative)
-- No step-down/step-up barrier schedules (deferred to v1.1+)
+| Role | Responsibility Focus | Primary Contact |
+|------|----------------------|-----------------|
+| Product Owner | Feature scope & commercial prioritization | siripong.s@yuanta.co.th |
+| Business Analyst | Specification integrity & rules traceability | siripong.s@yuanta.co.th |
+| Solution Architect | Integration & lifecycle design | siripong.s@yuanta.co.th |
+| Risk Manager | Scenario / stress assumptions validation | risk@yuanta.co.th |
+| Compliance Officer | Regulatory record & audit alignment | compliance@yuanta.co.th |
+| QA Engineer | Test vector & functional coverage | qa@yuanta.co.th |
+| Data Engineer | Data ingestion & lineage | data-engineering@yuanta.co.th |
+| Operations (Middle Office) | Post-trade events & reconciliation | operations@yuanta.co.th |
+| Trader (Front Office) | Trade entry accuracy | trading@yuanta.co.th |
+| Backend Engineer | Services & validation logic implementation | engineering@yuanta.co.th |
 
-**Current Status:** Draft  
-**Specification Version:** 1.0.0  
-**Target Activation:** Q2 2026
+(Full detail lives in stakeholders.md.)
 
-## 3. Key Stakeholders
+# 4. Document Inventory (Selected)
 
-| Role | Responsibilities | Owner/Contact |
-|------|------------------|---------------|
-| Product Owner | Defines economic behavior, approves specification | siripong.s@yuanta.co.th |
-| Business Analyst | Documents requirements, validates test vectors | siripong.s@yuanta.co.th |
-| Solution Architect | Designs API & data model, defines integration | siripong.s@yuanta.co.th |
-| Backend Engineer | Implements pricing engine & lifecycle processing | TBD |
-| QA Engineer | Validates test coverage & regression suite | TBD |
-| Data Engineer | Implements persistence & reporting pipelines | TBD |
+| Artifact | Purpose | Status | Link |
+|----------|---------|--------|------|
+| Specification (specs/fcn-v1.0.md) | Parameter & payoff definition | Draft | specs/fcn-v1.0.md |
+| Business Rules (business-rules.md) | Rules BR-001..BR-019 | Draft | business-rules.md |
+| ER Model (er-fcn-v1.0.md) | Logical data representation | Draft | er-fcn-v1.0.md |
+| Domain Handoff | SA consumption package | Draft | ../../sa/handoff/domain-handoff-fcn-v1.0.md |
+| ADR-003 | Version activation workflow | Approved | ../../sa/design-decisions/adr-003-fcn-version-activation.md |
+| ADR-004 | Alias & deprecation policy | Approved | ../../sa/design-decisions/adr-004-parameter-alias-policy.md |
+| DEC-011 | Notional precision decision | Approved | ../../sa/design-decisions/dec-011-notional-precision.md |
+| Test Vectors | Normative coverage set | In Progress | test-vectors/ |
 
-## 4. Document Inventory
+# 5. KPI Baselines
 
-### Specifications
-- **[fcn-v1.0.md](specs/fcn-v1.0.md)**: Normative product specification including parameters, taxonomy, and payoff logic
-- **[manifest.yaml](manifest.yaml)**: Product configuration and branch taxonomy definitions
+## 5.1 KPI Table
 
-### Technical Documentation
-- **[er-fcn-v1.0.md](er-fcn-v1.0.md)**: Logical entity-relationship model for data persistence
-- **[validator-roadmap.md](validator-roadmap.md)**: Phased validation and governance roadmap
-- **[validators/README.md](validators/README.md)**: Automated validator implementation guide
+| KPI | Baseline | Target (v1.0 Active Gate) | Owner | Measurement Method | Tool / Source | Frequency |
+|-----|----------|---------------------------|-------|--------------------|---------------|-----------|
+| Time-to-Launch (Spec Approval → Production Readiness) | 90 days | 60 days (v1.1 improvement goal) | Product Owner | Timestamp delta (spec approval vs. readiness checklist pass) | Governance checklist (ADR-003) | Per release |
+| Parameter Error Rate | 5% | < 2% | QA Engineer | Failed parameter validations / total validation attempts (rolling 30d) | parameter_validator.py (BR-001–004, 014, 015, 019) | Daily CI |
+| Data Completeness (Normative Branch Coverage) | 60% | ≥ 80% | Business Analyst | (# normative branches with full test vectors) / (total normative branches) | coverage_validator.py (BR-017 gating) | Per commit & Release |
+| Rule Mapping Coverage | 95% | 100% | Business Analyst | Mapped rules / total normative rules | mapping_report.json (schema-rule scan) | Weekly |
+| Precision Conformance (Notional) | 98% | 100% | Solution Architect | Valid precision payloads / total payloads | precision_audit.log (BR-019) | Daily |
+| Observation Idempotency Incidents | N/A (new) | 0 | Operations | Duplicate observation process attempts | lifecycle_engine logs (BR-007) | Real-time alert |
+| Test Vector Freshness (Avg Age) | 45 days | ≤ 30 days | QA Engineer | Mean days since last vector update (normative set) | repo metadata + CI report | Weekly |
 
-### Test Artifacts
-- **test-vectors/**: Normative test vector set for validation and regression testing
-- **schemas/**: JSON Schema definitions for parameter validation
+## 5.2 KPI Definitions
 
-## 5. Key Performance Indicators (KPIs)
+- Parameter Error Rate: Only counts violations against normative validation rules (BR-001–004, BR-014, BR-015, BR-019). Governance or non-normative examples excluded.
+- Data Completeness: Normative branch definition per taxonomy finalization; excludes non-normative (e.g., proportional-loss).
+- Rule Mapping Coverage: Ensures each rule appears in at least one of: schema path mapping OR derived logic descriptor.
+- Precision Conformance: Enforces DEC-011 currency-aware scale before persistence.
 
-### 5.1 Time-to-Launch
+## 5.3 KPI Dependencies
 
-**Definition:** Elapsed time from specification approval (status = Active) to production deployment readiness.
+| KPI | Dependent Rules / Decisions | Blocking Artifact |
+|-----|-----------------------------|-------------------|
+| Parameter Error Rate | BR-001..004, 014, 015, 019 | parameter_validator.py |
+| Data Completeness | BR-017 | Test vectors set |
+| Precision Conformance | BR-019 / DEC-011 | precision checker |
+| Observation Idempotency | BR-007 | lifecycle processing design |
+| Rule Mapping Coverage | BR-001..019 | mapping extraction script |
+| Test Vector Freshness | BR-017 | CI coverage metadata |
+| Time-to-Launch | ADR-003, ADR-004 | Activation checklist |
 
-**Baseline Value:** 90 days  
-**Target Value:** 60 days (v1.1+)  
-**Measurement Frequency:** Per version release  
-**Owner:** siripong.s@yuanta.co.th  
-**Measurement Method:** Time between spec `status: Active` and activation checklist completion
+# 6. Reporting & Dashboard
 
-**Tracking Notes:**
-- Start: Date when specification status changes to "Active" in YAML front matter
-- End: Date when all activation checklist items are completed and signed off
-- Includes: Requirements finalization, test vector development, validator implementation, integration testing
+Phased rollout:
+1. Phase A (Current): Raw JSON artifacts (param-validation.json, coverage_report.json, precision_audit.log).
+2. Phase B (Upcoming): Aggregation job producing kpi-snapshot.json (daily).
+3. Phase C (Future): Grafana / Looker dashboards with historical trend lines & SLA threshold coloration.
 
----
+Data retention for KPI snapshots follows DEC-011 storage tiers for alignment with audit expectations.
 
-### 5.2 Parameter Error Rate
+# 7. Governance Integration
 
-**Definition:** Percentage of test vectors or trades that fail parameter validation due to constraint violations.
+- Promotion Gate (Proposed → Active) requires:
+  - Data Completeness ≥ Target (BR-017)
+  - Parameter Error Rate < Target
+  - Precision Conformance = 100%
+- Regression triggers automatic “Needs Review” flag if:
+  - Parameter Error Rate ≥ Baseline × 1.5 for two consecutive days
+  - Data Completeness drops >10 percentage points week-over-week
+  - Any P0 rule loses mapping coverage
 
-**Baseline Value:** 5%  
-**Target Value:** <2% (production readiness threshold)  
-**Measurement Frequency:** Per validation run (daily in CI)  
-**Owner:** siripong.s@yuanta.co.th  
-**Measurement Method:** (Failed validations / Total validations) × 100
+# 8. Continuous Improvement Backlog
 
-**Validation Scope:**
-- Required parameter presence
-- Parameter value ranges and constraints
-- Logical relationships between parameters
-- Enumeration value conformance
-- JSON Schema compliance
+| Ref | Improvement | KPI Impact | Priority | Owner |
+|-----|------------|-----------|----------|-------|
+| IMP-01 | Automate rule → schema diff check in CI | Rule Mapping Coverage | P1 | BA |
+| IMP-02 | Add precision validator to pre-commit hook | Precision Conformance | P2 | SA |
+| IMP-03 | Generate synthetic vectors for edge coupon memory cases | Data Completeness | P1 | QA |
+| IMP-04 | Add lifecycle idempotency audit job | Observation Idempotency | P2 | Ops |
+| IMP-05 | Introduce KPI trend anomaly detection (EWMA) | All (early drift) | P2 | Data Eng |
 
-**Tracking Notes:**
-- Measured via `parameter_validator.py` (Phase 2 validator)
-- Reported in `param-validation.json` output
-- Excludes intentional negative test cases tagged with `error-case`
+# 9. Risks & Mitigations
 
----
+| Risk | Category | Mitigation |
+|------|----------|------------|
+| Underestimated branch explosion delaying coverage | Delivery | Enforce early taxonomy freeze (ADR-003 Stage) |
+| Hidden precision drift in downstream rounding | Data Quality | BR-019 strict ingress validation + nightly reconciliation |
+| Idempotency gaps causing duplicate coupon logic | Operational | Introduce unique index (observation_id, trade_id) OR application lock (decide OQ-BR-002) |
+| Over-complex KPI set diluting focus | Process | Quarterly pruning—drop KPIs without decision utility |
 
-### 5.3 Data Completeness
+# 10. Open Questions
 
-**Definition:** Percentage of branches in the taxonomy that have complete normative test vector coverage.
+| ID | Question | Dependency | Owner | Target |
+|----|----------|-----------|-------|--------|
+| OQ-KPI-001 | Should Time-to-Launch exclude governance drafting time? | ADR-003 metrics scope | Product | Week 2 |
+| OQ-KPI-002 | Do we snapshot KPI data before or after nightly ETL? | Data completeness accuracy | Data Eng | Week 1 |
+| OQ-KPI-003 | SLA thresholds for alerting (warn vs critical) | Dashboard design | BA + Ops | Week 3 |
 
-**Baseline Value:** 60%  
-**Target Value:** ≥80% (required for production readiness per ADR-003)  
-**Measurement Frequency:** Per validation run (daily in CI)  
-**Owner:** siripong.s@yuanta.co.th  
-**Measurement Method:** (Branches with complete normative vectors / Total branches) × 100
-
-**Completeness Criteria (per branch):**
-- Minimum 1 normative test vector per branch
-- Required tags present: `baseline`, `edge`, `ki-event`
-- All normative vectors pass expected output validation
-- Test vector metadata complete and valid
-
-**Tracking Notes:**
-- Measured via `coverage_validator.py` (Phase 3 validator)
-- Current branches defined in `manifest.yaml`
-- Coverage matrix reported in `validation-summary.md`
-
----
-
-## 6. KPI Dashboard & Reporting
-
-### Current Measurement Tools
-- **metadata_validator.py**: Phase 0 - Document structure and metadata completeness
-- **taxonomy_validator.py**: Phase 1 - Branch taxonomy consistency
-- **parameter_validator.py**: Phase 2 - Parameter constraint validation
-- **coverage_validator.py**: Phase 3 - Test vector coverage measurement
-
-### Reporting Outputs
-1. **validation-summary.md**: Aggregated KPI status per validation phase
-2. **coverage-matrix.html**: Visual heatmap of branch coverage
-3. **param-validation.json**: Parameter error details and trends
-4. **metadata-validation.json**: Document completeness status
-
-### Dashboard Location (Planned)
-TBD - Integration with CI/CD pipeline reporting dashboard
-
-## 7. Success Criteria
-
-**For Proposed → Active Promotion:**
-- ✅ All Phase 0–2 validators passing
-- ✅ Minimum 1 normative vector per branch
-- ✅ No P0 violations in CI
-- ✅ Parameter Error Rate ≤5%
-
-**For Production Readiness:**
-- ✅ All Phase 0–4 validators passing
-- ✅ Data Completeness ≥80%
-- ✅ Parameter Error Rate <2%
-- ✅ Time-to-Launch documented and baseline established
-- ✅ All normative vectors passing expected output validation
-- ✅ Activation checklist completed and linked
-
-## 8. Continuous Improvement
-
-### Review Cycle
-- **KPI Baselines:** Reviewed quarterly
-- **Target Values:** Adjusted based on 2+ release cycles of historical data
-- **Measurement Methods:** Validated against actual implementation experience
-
-### Future Enhancements
-- Automated KPI dashboard with trend visualization
-- Real-time parameter error rate monitoring in production
-- Comparative analysis across product versions (v1.0 vs v1.1+)
-- Integration with trade booking system for production error tracking
-
-## 9. Open Items
-
-- [ ] Finalize backend engineer assignment for implementation KPI tracking
-- [ ] Define production error rate measurement approach post-launch
-- [ ] Establish KPI dashboard tooling and visualization platform
-- [ ] Integrate KPI metrics with CI/CD pipeline reporting
-
-## 10. Related Documentation
-
-- **Governance:** [common/governance.md](../../common/governance.md)
-- **Activation Requirements:** [ADR-003](../../../sa/design-decisions/adr-003-fcn-version-activation.md)
-- **Validator Implementation:** [validators/README.md](validators/README.md)
-- **Domain Handoff:** [domain-handoff-fcn-v1.0.md](../../../sa/handoff/domain-handoff-fcn-v1.0.md)
-
-## 11. Change Log
+# 11. Change Log
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview document with KPI baselines defined |
+| 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview & KPI baselines established |
+
+# 12. References
+
+- [FCN v1.0 Specification](specs/fcn-v1.0.md)
+- [Business Rules](business-rules.md)
+- [Entity-Relationship Model](er-fcn-v1.0.md)
+- [Domain Handoff](../../sa/handoff/domain-handoff-fcn-v1.0.md)
+- [ADR-003 Version Activation & Promotion](../../sa/design-decisions/adr-003-fcn-version-activation.md)
+- [ADR-004 Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
+- [DEC-011 Notional Precision Policy](../../sa/design-decisions/dec-011-notional-precision.md)
+- KPI Scripts (parameter_validator.py, coverage_validator.py, precision audit utilities)

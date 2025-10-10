@@ -50,7 +50,7 @@
       "type": "number",
       "minimum": 0,
       "exclusiveMinimum": true,
-      "description": "Notional amount; must be positive"
+      "description": "Notional amount; must be positive; precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW)"
     },
     "currency": {
       "type": "string",

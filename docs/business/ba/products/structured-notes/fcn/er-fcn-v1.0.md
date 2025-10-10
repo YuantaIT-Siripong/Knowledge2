@@ -34,10 +34,17 @@ Represents the product definition and versioning metadata.
 - `product_name`: Human-readable name
 - `product_family`: Classification (e.g., "structured-notes")
 - `spec_version`: Semantic version (e.g., "1.0.0")
-- `status`: Lifecycle status (Proposed, Active, Deprecated, Removed)
+- `status`: Lifecycle status (enum: Draft, Proposed, Active, Deprecated, Removed)
 - `owner`: Responsible party
 - `created_at`: Creation timestamp
 - `updated_at`: Last update timestamp
+
+**Status Enumeration:**
+- `Draft`: Initial specification development
+- `Proposed`: Ready for activation review
+- `Active`: Production-ready and approved for trading
+- `Deprecated`: No longer recommended; existing trades continue
+- `Removed`: Fully retired; no new trades allowed
 
 ### 2.2 Product_Version
 
@@ -47,12 +54,16 @@ Captures version-specific metadata and promotion state.
 - `version_id` (PK): Unique version identifier
 - `product_id` (FK → Product): Parent product
 - `version`: Semantic version string
-- `status`: Version-specific status
+- `status`: Version-specific status (enum: Draft, Proposed, Active, Deprecated, Removed)
 - `spec_file_path`: Relative path to specification document
 - `parameter_schema_path`: Path to JSON schema
 - `activation_checklist_ref`: Reference to checklist issue/document
 - `release_date`: Date activated (if status = Active)
 - `deprecated_date`: Date deprecated (if applicable)
+
+**Status Enumeration:**
+Same as Product status (Draft, Proposed, Active, Deprecated, Removed).
+Status transition workflow: Draft → Proposed → Active → Deprecated → Removed
 
 ### 2.3 Branch
 
@@ -97,7 +108,7 @@ Represents an individual FCN trade instance.
 - `trade_date`: Execution date
 - `issue_date`: Issuance date
 - `maturity_date`: Final maturity date
-- `notional`: Notional amount
+- `notional`: Notional amount (precision: 2 decimal places for standard currencies, 0 for zero-decimal currencies)
 - `currency`: Settlement currency (ISO-4217)
 - `observation_style`: Barrier style (american, european)
 - `knock_in_barrier_pct`: KI barrier level
@@ -236,7 +247,120 @@ Product_Version (1) ──< (M) Parameter_Definition
 Product_Version (1) ──< (M) Test_Vector ──> (1) Branch
 ```
 
-## 4. Key Constraints
+## 4. Enumeration Definitions
+
+This section defines all enumeration values used in the FCN v1.0 data model, marking which values are in-scope for v1.0 and which are deferred to future versions.
+
+### 4.1 Product / Product_Version Status
+
+**Enum Values:**
+
+| Value | Description | Lifecycle Stage | v1.0 Status |
+|-------|-------------|-----------------|-------------|
+| Draft | Specification under development | Pre-production | **In-scope** |
+| Proposed | Ready for activation review; awaiting approval | Pre-production | **In-scope** |
+| Active | Production-ready; approved for trading | Production | **In-scope** |
+| Deprecated | No longer recommended; existing trades continue | Phase-out | **In-scope** |
+| Removed | Fully retired; no new trades allowed | Archived | **In-scope** |
+
+**Status Transition Workflow:**
+```
+Draft → Proposed → Active → Deprecated → Removed
+```
+
+**Transition Rules:**
+- Draft → Proposed: Requires activation checklist completion (see ADR-003)
+- Proposed → Active: Requires governance approval and normative test vector validation
+- Active → Deprecated: Manual deprecation notice with deprecation_date
+- Deprecated → Removed: After grace period, all existing trades matured/settled
+
+### 4.2 Trade Status (Lifecycle)
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| booked | Trade booked but not yet issued | **In-scope** | Initial state after trade capture |
+| active | Trade issued and active | **In-scope** | Post-issue, pre-maturity |
+| matured | Trade reached maturity date | **In-scope** | Awaiting final settlement |
+| terminated | Trade terminated early (if supported) | Deferred to v1.1+ | Early termination feature |
+| redeemed | Final settlement completed | **In-scope** | Terminal state |
+
+**v1.0 Scope:**
+- Supported: `booked`, `active`, `matured`, `redeemed`
+- Deferred: `terminated` (early termination not supported in v1.0 baseline)
+
+### 4.3 Barrier Monitoring Type
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| discrete | Barrier evaluated only on scheduled observation dates | **In-scope (normative)** | Only monitoring type supported in v1.0 |
+| continuous | Barrier monitored continuously throughout life | Deferred to v1.1+ | Requires intraday market data infrastructure |
+
+**v1.0 Constraint:** Only `discrete` monitoring supported. Continuous monitoring deferred to v1.1+.
+
+### 4.4 Settlement Type
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| physical-settlement | Deliver underlying assets at maturity | **In-scope (normative)** | Baseline normative settlement mode |
+| cash-settlement | Deliver cash equivalent at maturity | In-scope (non-normative) | Illustrative examples only |
+
+**v1.0 Constraint:** `physical-settlement` is normative; `cash-settlement` non-normative (examples only).
+
+### 4.5 Recovery Mode
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| par-recovery | Return 100% notional at maturity regardless of KI | **In-scope (normative)** | Baseline normative recovery mode |
+| proportional-loss | Deliver underlying proportional to worst performance | In-scope (non-normative) | Illustrative examples only |
+
+**v1.0 Constraint:** `par-recovery` is normative; `proportional-loss` non-normative (examples only).
+
+### 4.6 Knock-In Condition
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| any-underlying-breach | KI triggered if any underlying breaches barrier | **In-scope** | Only condition supported in v1.0 |
+| all-underlying-breach | KI triggered only if all underlyings breach | Deferred to v1.1+ | Future enhancement |
+| worst-of | KI based on worst performing underlying | Deferred to v1.1+ | Future enhancement |
+
+**v1.0 Constraint:** Only `any-underlying-breach` supported. Alternative conditions deferred.
+
+### 4.7 Day Count Convention
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| ACT/365 | Actual days / 365 | **In-scope** | Default convention |
+| ACT/360 | Actual days / 360 | **In-scope** | Alternative convention |
+| 30/360 | 30 days per month / 360 days per year | Deferred to v1.1+ | Future enhancement |
+
+**v1.0 Constraint:** `ACT/365` and `ACT/360` supported; default is `ACT/365`.
+
+### 4.8 Cash Flow Type
+
+**Enum Values:**
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| coupon | Periodic coupon payment | **In-scope** | Standard coupon flow |
+| redemption | Final principal redemption | **In-scope** | Maturity payment |
+| fee | Administrative or structuring fee | Deferred to v1.1+ | Future enhancement |
+| early-redemption | Early termination payment | Deferred to v1.1+ | Requires early termination feature |
+
+**v1.0 Constraint:** Only `coupon` and `redemption` flow types supported.
+
+## 5. Key Constraints
 
 1. **Unique Product Version:** `(product_id, version)` must be unique.
 2. **Unique Branch per Version:** `(product_id, version_id, branch_code)` must be unique.
@@ -246,7 +370,7 @@ Product_Version (1) ──< (M) Test_Vector ──> (1) Branch
 6. **Parameter Alias Chain:** `alias_of` must not form cycles.
 7. **Test Vector Taxonomy Alignment:** `Test_Vector.branch_id` taxonomy must match parameters.
 
-## 5. Indexing Strategy
+## 6. Indexing Strategy
 
 ### High-Priority Indexes:
 - `Product.product_code`
@@ -258,7 +382,7 @@ Product_Version (1) ──< (M) Test_Vector ──> (1) Branch
 - `Cash_Flow.(trade_id, flow_date)`
 - `Test_Vector.(product_id, version_id, normative)`
 
-## 6. Data Integrity Rules
+## 7. Data Integrity Rules
 
 1. **Date Ordering:** `trade_date ≤ issue_date ≤ observation_dates[0] < maturity_date`
 2. **Observation Completeness:** All `observation_dates` must have corresponding `Observation` records.
@@ -266,7 +390,7 @@ Product_Version (1) ──< (M) Test_Vector ──> (1) Branch
 4. **Coupon Memory Logic:** If `is_memory_coupon = true`, `missed_coupons_accumulated` must be tracked.
 5. **Knock-In Permanence:** Once `Knock_In_Trigger` exists, cannot be deleted (immutable event).
 
-## 7. Migration Path
+## 8. Migration Path
 
 Initial migration (`m0001-fcn-baseline.sql`) creates:
 - Core entities: Product, Product_Version, Branch, Parameter_Definition
@@ -279,7 +403,7 @@ Future migrations (`m0002`, `m0003`, ...) will:
 - Add computed views for performance analytics
 - Introduce audit trail tables
 
-## 8. Extensibility
+## 9. Extensibility
 
 ### For Future Versions (v1.1+):
 - Add `step_schedule` JSONB column to `Trade` for step-down features.
@@ -290,14 +414,14 @@ Future migrations (`m0002`, `m0003`, ...) will:
 - Reuse `Product`, `Product_Version`, `Branch` schema.
 - Introduce product-specific child tables inheriting from base trade structure.
 
-## 9. Validation Hooks (Planned)
+## 10. Validation Hooks (Planned)
 
 - **Phase 0 (Metadata):** Validate `Product_Version` status transitions, spec file existence.
 - **Phase 1 (Taxonomy):** Ensure `Branch` taxonomy tuples are complete and unique.
 - **Phase 2 (Parameters):** Validate `Trade` parameters against `Parameter_Definition` constraints.
 - **Phase 3 (Test Vectors):** Ensure all `normative = true` vectors exist and pass.
 
-## 10. Change Log
+## 11. Change Log
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|

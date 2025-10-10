@@ -13,6 +13,7 @@ classification: Internal
 tags: [fcn, handoff, domain-model, architecture, structured-notes]
 related:
   - ../../ba/products/structured-notes/fcn/specs/fcn-v1.0.md
+  - ../../ba/products/structured-notes/fcn/non-functional.md
   - ../../ba/products/structured-notes/fcn/er-fcn-v1.0.md
   - ../../ba/products/structured-notes/fcn/manifest.yaml
   - ../design-decisions/adr-002-product-doc-structure.md
@@ -91,6 +92,8 @@ This document serves as the domain handoff package from Business Analysis to Sol
 | Proportional Loss | Recovery mode delivering underlying assets proportionally to breach level | Product Spec | Non-normative in v1.0 |
 | Physical Settlement | Delivery of underlying assets rather than cash equivalent | Product Spec | Normative for v1.0 |
 | Barrier Monitoring | Process of checking underlying levels against KI barrier on observation dates | Product Spec | Discrete only in v1.0 |
+| Discrete Monitoring | Barrier evaluated only on scheduled observation dates (v1.0 in-scope) | Product Spec | Normative monitoring type |
+| Continuous Monitoring | Barrier monitored continuously throughout life (deferred to v1.1+) | Product Spec | Future enhancement |
 | Observation Date | Scheduled date for evaluating coupon conditions and barrier breaches | Product Spec | Excludes maturity unless explicit |
 | Coupon Condition | Threshold requirement (e.g., all underlyings above X% of initial) for coupon payment | Product Spec | Independent per underlying |
 | Redemption Barrier | Final barrier level determining par redemption eligibility at maturity | Product Spec | Distinct from KI barrier |
@@ -98,6 +101,11 @@ This document serves as the domain handoff package from Business Analysis to Sol
 | Normative Test Vector | Required test case for version promotion from Proposed to Active | ADR-003 | Quality gate artifact |
 | Parameter Schema | JSON Schema defining trade parameters, types, and constraints | Technical | Validation contract |
 | Documentation Version | Traceability anchor linking trade to specification version | Product Spec | Audit requirement |
+| Draft Status | Product/version under initial development | Product Lifecycle | Pre-production status |
+| Proposed Status | Product/version ready for activation review | Product Lifecycle | Pre-production status |
+| Active Status | Product/version approved for trading | Product Lifecycle | Production status |
+| Deprecated Status | Product/version no longer recommended but existing trades continue | Product Lifecycle | Phase-out status |
+| Removed Status | Product/version fully retired, no new trades allowed | Product Lifecycle | Archived status |
 
 ---
 
@@ -257,6 +265,88 @@ erDiagram
 - Physical: Deliver underlying assets (normative for v1.0)
 - Cash: Pay cash equivalent (non-normative)
 
+### 4.3 Enumeration Definitions (v1.0 Scope)
+
+This subsection documents all enumeration values used in FCN v1.0, marking which values are in-scope for v1.0 and which are deferred to future versions.
+
+#### 4.3.1 Product / Product_Version Status
+
+**Enum Values:**
+- `Draft` - Specification under development (pre-production)
+- `Proposed` - Ready for activation review (pre-production)
+- `Active` - Production-ready and approved for trading
+- `Deprecated` - No longer recommended; existing trades continue
+- `Removed` - Fully retired; no new trades allowed
+
+**Status Transition Workflow:** Draft → Proposed → Active → Deprecated → Removed
+
+**v1.0 Scope:** All status values in-scope.
+
+#### 4.3.2 Trade Status (Lifecycle)
+
+**Enum Values:**
+- `booked` - Trade booked but not yet issued (v1.0 in-scope)
+- `active` - Trade issued and active (v1.0 in-scope)
+- `matured` - Trade reached maturity date (v1.0 in-scope)
+- `terminated` - Trade terminated early (deferred to v1.1+)
+- `redeemed` - Final settlement completed (v1.0 in-scope)
+
+**v1.0 Scope:** `booked`, `active`, `matured`, `redeemed` are in-scope. `terminated` deferred (early termination not supported).
+
+#### 4.3.3 Barrier Monitoring Type (monitoringType)
+
+**Enum Values:**
+- `discrete` - Barrier evaluated only on scheduled observation dates (v1.0 in-scope, normative)
+- `continuous` - Barrier monitored continuously throughout life (deferred to v1.1+)
+
+**v1.0 Scope:** Only `discrete` monitoring supported. Continuous monitoring requires intraday market data infrastructure (deferred).
+
+**Field Name:** `barrier_monitoring` in trade parameters
+
+#### 4.3.4 Settlement Type
+
+**Enum Values:**
+- `physical-settlement` - Deliver underlying assets at maturity (v1.0 in-scope, normative)
+- `cash-settlement` - Deliver cash equivalent at maturity (v1.0 in-scope, non-normative)
+
+**v1.0 Scope:** `physical-settlement` normative; `cash-settlement` may appear in examples only (non-normative).
+
+#### 4.3.5 Recovery Mode
+
+**Enum Values:**
+- `par-recovery` - Return 100% notional at maturity regardless of KI (v1.0 in-scope, normative)
+- `proportional-loss` - Deliver underlying proportional to worst performance (v1.0 in-scope, non-normative)
+
+**v1.0 Scope:** `par-recovery` normative; `proportional-loss` may appear in examples only (non-normative).
+
+#### 4.3.6 Knock-In Condition
+
+**Enum Values:**
+- `any-underlying-breach` - KI triggered if any underlying breaches barrier (v1.0 in-scope)
+- `all-underlying-breach` - KI triggered only if all underlyings breach (deferred to v1.1+)
+- `worst-of` - KI based on worst performing underlying (deferred to v1.1+)
+
+**v1.0 Scope:** Only `any-underlying-breach` supported.
+
+#### 4.3.7 Day Count Convention
+
+**Enum Values:**
+- `ACT/365` - Actual days / 365 (v1.0 in-scope, default)
+- `ACT/360` - Actual days / 360 (v1.0 in-scope)
+- `30/360` - 30 days per month / 360 days per year (deferred to v1.1+)
+
+**v1.0 Scope:** `ACT/365` and `ACT/360` supported; default is `ACT/365`.
+
+#### 4.3.8 Cash Flow Type
+
+**Enum Values:**
+- `coupon` - Periodic coupon payment (v1.0 in-scope)
+- `redemption` - Final principal redemption (v1.0 in-scope)
+- `fee` - Administrative or structuring fee (deferred to v1.1+)
+- `early-redemption` - Early termination payment (deferred to v1.1+)
+
+**v1.0 Scope:** Only `coupon` and `redemption` flow types supported.
+
 ---
 
 ## 5. Core Processes
@@ -405,6 +495,7 @@ erDiagram
 | BR-016 | Data Integrity | Basket weights sum to 1.0 (if explicit; default equal-weight) | Technical | SA | P2 | Draft |
 | BR-017 | Test Coverage | Normative test vectors required for Proposed → Active promotion | ADR-003 | SA | P0 | Draft |
 | BR-018 | Versioning | Parameter schema changes require new product version | ADR-004 | SA | P1 | Draft |
+| BR-019 | Validation | Notional amount precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW) | Spec §3 | BA | P1 | Draft |
 
 ### Rule Categories
 - **Validation**: Input constraint enforcement
@@ -514,6 +605,8 @@ Response: Settlement instruction (cash or physical delivery)
 
 ## 9. Non-Functional Drivers
 
+**Note:** Detailed non-functional requirements with concrete targets and acceptance criteria are documented in [FCN v1.0 Non-Functional Requirements](../../ba/products/structured-notes/fcn/non-functional.md). The following provides a high-level summary.
+
 ### 9.1 Performance Requirements
 - **Trade Booking Latency**: < 500ms p95
 - **Observation Processing Throughput**: 10,000 trades/day
@@ -571,6 +664,7 @@ Response: Settlement instruction (cash or physical delivery)
 | DEC-008 | 2025-10-10 | Observation dates exclude maturity unless explicitly listed | Clarity in scheduling, avoids double-counting | Accepted | BA |
 | DEC-009 | 2025-10-10 | Equal-weight basket default if weights not specified | Simplifies initial implementation, common use case | Proposed | SA |
 | DEC-010 | 2025-10-10 | Phase 0-2 validators required for Proposed status | Early quality feedback, prevents downstream rework | Accepted | SA |
+| DEC-011 | 2025-10-10 | Notional amount precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW) | Aligns with currency standards and industry practice; ensures consistent representation across systems | Accepted | BA |
 
 **Reference ADRs:**
 - [ADR-002: Product Documentation Structure](../design-decisions/adr-002-product-doc-structure.md)
@@ -583,9 +677,9 @@ Response: Settlement instruction (cash or physical delivery)
 
 ### 11.1 Open Questions
 
-| ID | Question | Impact | Owner | Target Resolution Date |
-|----|----------|--------|-------|------------------------|
-| OQ-001 | What precision (decimal places) should be used for percentage parameters (barrier_pct, coupon_rate_pct)? | Data model, API contract | SA | 2025-10-15 |
+| ID | Question | Impact | Owner | Target Resolution Date | Status |
+|----|----------|--------|-------|------------------------|--------|
+| OQ-001 | What precision (decimal places) should be used for percentage parameters (barrier_pct, coupon_rate_pct)? | Data model, API contract | SA | 2025-10-15 | Open |
 | OQ-002 | Should barrier monitoring type be extensible in schema for future continuous monitoring? | Schema design, migration path | SA | 2025-10-15 |
 | OQ-003 | What is the business day adjustment convention if observation date falls on holiday? | Coupon logic, calendar integration | BA | 2025-10-17 |
 | OQ-004 | How should we handle late-arriving market data (observation date passed but data not received)? | Error handling, SLA | SA | 2025-10-17 |
@@ -594,9 +688,15 @@ Response: Settlement instruction (cash or physical delivery)
 | OQ-007 | Should test vectors include negative test cases (invalid parameters) or only valid payoff scenarios? | Test strategy, validator scope | QA | 2025-10-20 |
 | OQ-008 | What level of audit trail detail is required for regulatory reporting (field-level vs record-level)? | Audit schema, storage cost | Compliance | 2025-10-25 |
 | OQ-009 | Should the system support backdated trade bookings (trade_date < system date)? | API logic, historical processing | SA | 2025-10-17 |
-| OQ-010 | How should FX rates be applied for cross-currency underlyings (spot, forward, or average)? | Pricing logic, data dependency | BA | 2025-10-22 |
+| OQ-010 | How should FX rates be applied for cross-currency underlyings (spot, forward, or average)? | Pricing logic, data dependency | BA | 2025-10-22 | Open |
 
-### 11.2 Assumptions
+### 11.2 Resolved Questions
+
+| ID | Question | Resolution | Resolved Date | Decision Ref |
+|----|----------|------------|---------------|--------------|
+| RQ-001 | What precision (decimal places) should be used for notional amount parameter? | 2 decimal places for standard currencies (USD, EUR, THB); 0 for zero-decimal currencies (JPY, KRW) | 2025-10-10 | DEC-011 |
+
+### 11.3 Assumptions
 
 | ID | Assumption | Risk if Invalid | Mitigation | Status |
 |----|------------|-----------------|------------|--------|
@@ -616,7 +716,8 @@ Response: Settlement instruction (cash or physical delivery)
 ## 12. Next Steps After Merge
 
 ### 12.1 Immediate Follow-Up (Week 1-2)
-- [ ] **Populate Rule Sources & Owners**: Assign specific spec section references to each business rule (BR-001 through BR-018)
+- [ ] **Populate Rule Sources & Owners**: Assign specific spec section references to each business rule (BR-001 through BR-019)
+- [x] **Resolve RQ-001**: Decimal precision for notional amount parameter (DEC-011: 2 decimal places for standard currencies, 0 for zero-decimal currencies)
 - [ ] **Resolve OQ-001**: Decimal precision for percentage parameters (coordinate with database team)
 - [ ] **Resolve OQ-005**: Clarify memory_carry_cap_count = 0 semantics (consult product owner)
 - [ ] **Create Schema-to-Rule Mapping Table**: Map JSON Schema constraints to business rules for traceability
@@ -653,6 +754,7 @@ Response: Settlement instruction (cash or physical delivery)
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial handoff package creation with all required sections |
+| 1.0.1 | 2025-10-10 | copilot | Added DEC-011 for notional precision, BR-019 validation rule, resolved RQ-001 open question |
 
 ---
 
