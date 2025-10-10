@@ -19,7 +19,7 @@ related:
   - ../../../sa/design-decisions/adr-002-product-doc-structure.md
   - ../../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../../sa/design-decisions/adr-004-parameter-alias-policy.md
-activation_checklist_issue: TBC
+activation_checklist_issue: .github/ISSUE_TEMPLATE/fcn-v1.0-activation-checklist.md
 normative_test_vector_set:
   - N1
   - N2
@@ -174,12 +174,17 @@ Planned normative test vector files (will reside in `../test-vectors/`):
 (normative_test_vector_set will list actual committed filenames once created)
 
 ## 11. Activation Checklist Reference
-Placeholder: activation_checklist_issue to be updated once checklist template file + GitHub issue is created (required for Proposed → Active promotion per ADR-003).
+The activation checklist for promoting this specification from Draft to Proposed status is tracked via GitHub issue template: `.github/ISSUE_TEMPLATE/fcn-v1.0-activation-checklist.md`
 
-Required items outstanding before promotion:
-- Populate normative test vectors (N1–N5)
-- Automation placeholder: taxonomy & parameter validation (initial lint)
-- Confirm barrier monitoring semantics doc section (if expansion happens)
+This checklist is required for Proposed → Active promotion per ADR-003 and includes the following key gates:
+- Normative test vector set (N1–N5) present and verified
+- Taxonomy declared and matches all vector branch_ids
+- Alias table empty and verified (v1.0 baseline)
+- Governance reviewers confirmed (Product Owner, Risk, Technical, Documentation Steward)
+- Automation lint status: metadata, taxonomy, memory logic checked
+- Documentation review completed
+
+Create a new issue using the template to track activation progress.
 
 ## 12. Open Items
 | item | description | priority | target_version |
