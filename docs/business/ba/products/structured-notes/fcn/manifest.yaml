@@ -1,0 +1,120 @@
+---
+product_code: FCN
+product_name: Fixed Coupon Note
+product_family: structured-notes
+status: Proposed
+current_version: 1.0.0
+owner: siripong.s@yuanta.co.th
+created: 2025-10-09
+last_updated: 2025-10-10
+
+description: |
+  Fixed Coupon Note (FCN) with down-and-in barrier protection and conditional coupon payments.
+  Baseline v1.0 covers memory/no-memory variants, physical settlement, and par-recovery/proportional-loss modes.
+
+versions:
+  - version: 1.0.0
+    status: Proposed
+    spec_file: specs/fcn-v1.0.md
+    parameter_schema: schemas/fcn-v1.0-parameters.schema.json
+    activation_checklist: specs/_activation-checklist-template.md
+    promotion_requirements:
+      - Parameter table completeness validated
+      - Taxonomy codes stable and documented
+      - Minimum normative test vector set defined
+      - Risk calibration review completed
+      - Implementation parity confirmed
+      - No unresolved naming conflicts
+    release_date: null
+    deprecated_date: null
+
+branches:
+  - branch_id: fcn-base-mem
+    description: Memory coupon, par-recovery, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: memory
+      step_feature: no-step
+      recovery_mode: par-recovery
+    normative_vectors:
+      - fcn-v1.0-base-mem-baseline
+      - fcn-v1.0-base-mem-edge-barrier-touch
+      - fcn-v1.0-base-mem-ki-event
+  
+  - branch_id: fcn-base-nomem
+    description: No-memory coupon, par-recovery, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: no-memory
+      step_feature: no-step
+      recovery_mode: par-recovery
+    normative_vectors:
+      - fcn-v1.0-base-nomem-baseline
+
+  - branch_id: fcn-base-mem-proploss
+    description: Memory coupon, proportional-loss, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: memory
+      step_feature: no-step
+      recovery_mode: proportional-loss
+    normative_vectors: []
+
+schemas:
+  parameters: schemas/fcn-v1.0-parameters.schema.json
+  test_vector: schemas/test-vector.schema.json
+
+migrations:
+  - migration_id: m0001
+    file: migrations/m0001-fcn-baseline.sql
+    description: Core product, branches, taxonomy, parameters, trades
+    applied: false
+    depends_on: []
+
+validators:
+  - validator_id: phase-0-metadata
+    script: validators/metadata_validator.py
+    phase: 0
+    description: Front matter and document structure validation
+  
+  - validator_id: phase-1-taxonomy
+    script: validators/taxonomy_validator.py
+    phase: 1
+    description: Taxonomy tuple conformance validation
+  
+  - validator_id: phase-2-parameters
+    script: validators/parameter_validator.py
+    phase: 2
+    description: Parameter schema conformance and constraint validation
+
+documentation:
+  spec: specs/fcn-v1.0.md
+  er_model: er-fcn-v1.0.md
+  validator_roadmap: validator-roadmap.md
+  test_vectors_dir: test-vectors/
+  examples_dir: examples/
+  lifecycle_dir: lifecycle/
+
+governance:
+  promotion_workflow: ../../common/governance.md
+  activation_adr: ../../../sa/design-decisions/adr-003-fcn-version-activation.md
+  alias_policy: ../../../sa/design-decisions/adr-004-parameter-alias-policy.md
+
+related_documents:
+  - ../common/conventions.md
+  - ../common/payoff_types.md
+  - ../common/governance.md
+  - ../common/deprecation-alias-policy.md
+
+change_log:
+  - version: 1.0.0
+    date: 2025-10-09
+    author: siripong.s@yuanta.co.th
+    changes: Initial baseline product definition and governance artifacts
+  - version: 1.0.0
+    date: 2025-10-10
+    author: siripong.s@yuanta.co.th
+    changes: Added schemas, manifest, migrations, validators for Phase 0-2 implementation

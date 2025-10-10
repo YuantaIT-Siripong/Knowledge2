@@ -46,3 +46,12 @@ metadata-validation.json
 test-vectors-ingestion.json
 taxonomy-validation.json
 parameters-validation.json
+
+# Database files (generated)
+*.db
+*.sqlite
+*.sqlite3
+
+# Validation outputs
+metadata-validation.json
+taxonomy-validation.json
