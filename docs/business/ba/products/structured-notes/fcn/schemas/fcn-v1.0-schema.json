@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/YuantaIT-Siripong/Knowledge2/schemas/fcn-v1.0",
+  "title": "Fixed Coupon Note (FCN) v1.0 Parameter Schema",
+  "description": "JSON Schema for FCN v1.0 baseline specification parameter validation",
+  "type": "object",
+  "required": [
+    "trade_date",
+    "issue_date",
+    "maturity_date",
+    "underlying_symbols",
+    "initial_levels",
+    "notional_amount",
+    "currency",
+    "observation_dates",
+    "coupon_payment_dates",
+    "coupon_rate_pct",
+    "knock_in_barrier_pct",
+    "barrier_monitoring",
+    "knock_in_condition",
+    "redemption_barrier_pct",
+    "settlement_type",
+    "recovery_mode",
+    "documentation_version"
+  ],
+  "properties": {
+    "trade_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of trade agreement (ISO-8601)"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Settlement / note inception date"
+    },
+    "maturity_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Contract final maturity"
+    },
+    "underlying_symbols": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9]+$"
+      },
+      "description": "Underlying instrument identifiers (uppercase tickers)"
+    },
+    "initial_levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "description": "Recorded initial spot/close for each underlying"
+    },
+    "notional_amount": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Face amount in currency units"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Settlement currency (ISO-4217)"
+    },
+    "observation_dates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Coupon & barrier observation schedule"
+    },
+    "coupon_observation_offset_days": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Business day offset for observing coupon vs nominal schedule"
+    },
+    "coupon_payment_dates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "When coupons (if any) are paid"
+    },
+    "coupon_rate_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Period coupon rate (ratio form)"
+    },
+    "is_memory_coupon": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, missed coupons can accrue and pay later"
+    },
+    "memory_carry_cap_count": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Limits number of unpaid coupons that can accumulate"
+    },
+    "knock_in_barrier_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1,
+      "description": "Barrier level as fraction of initial level"
+    },
+    "barrier_monitoring": {
+      "type": "string",
+      "enum": ["discrete"],
+      "description": "Monitoring style (only discrete supported in v1.0)"
+    },
+    "knock_in_condition": {
+      "type": "string",
+      "enum": ["any-underlying-breach"],
+      "description": "Condition logic for knock-in"
+    },
+    "redemption_barrier_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Final redemption barrier (for par redemption)"
+    },
+    "settlement_type": {
+      "type": "string",
+      "enum": ["physical-settlement"],
+      "description": "Settlement type (physical-settlement for v1.0 normative)"
+    },
+    "coupon_condition_threshold_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "default": 1.0,
+      "description": "Minimum fraction of initial level for coupon payment"
+    },
+    "recovery_mode": {
+      "type": "string",
+      "enum": ["par-recovery"],
+      "description": "Baseline normative recovery branch"
+    },
+    "day_count_convention": {
+      "type": "string",
+      "enum": ["ACT/365", "ACT/360"],
+      "default": "ACT/365",
+      "description": "Used for accrual calculations"
+    },
+    "business_day_calendar": {
+      "type": "string",
+      "default": "TARGET",
+      "description": "Calendar for date adjustments"
+    },
+    "fx_reference": {
+      "type": ["string", "null"],
+      "description": "FX rate source identifier"
+    },
+    "documentation_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Traceability anchor"
+    }
+  }
+}
