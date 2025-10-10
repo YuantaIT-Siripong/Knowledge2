@@ -166,11 +166,36 @@ def validate_parameters(params: Dict[str, Any]) -> List[str]:
                     f"coupon_condition_threshold_pct ({coupon_threshold})"
                 )
     
-    # Validate notional amount is positive
+    # Validate notional amount is positive and has correct precision
     if 'notional_amount' in params:
         notional = params['notional_amount']
         if isinstance(notional, (int, float)) and notional <= 0:
             errors.append(f"notional_amount must be positive, got {notional}")
+        
+        # Validate notional precision based on currency
+        if 'currency' in params and isinstance(notional, (int, float)):
+            currency = params['currency']
+            # Zero-decimal currencies (no fractional units)
+            zero_decimal_currencies = ['JPY', 'KRW']
+            # Standard currencies require 2 decimal places max
+            
+            if currency in zero_decimal_currencies:
+                # Should be a whole number
+                if notional != int(notional):
+                    errors.append(
+                        f"notional_amount for {currency} must be a whole number (0 decimal places), "
+                        f"got {notional}"
+                    )
+            else:
+                # Check if more than 2 decimal places
+                decimal_str = str(notional)
+                if '.' in decimal_str:
+                    decimal_places = len(decimal_str.split('.')[1])
+                    if decimal_places > 2:
+                        errors.append(
+                            f"notional_amount for {currency} must have at most 2 decimal places, "
+                            f"got {decimal_places} decimal places"
+                        )
     
     # Validate settlement_type
     if 'settlement_type' in params:

@@ -1,199 +1,183 @@
 ---
-title: FCN v1.0 Business Rules and Data Mapping
-doc_type: business-rules
+title: FCN v1.0 Business Rules
+doc_type: business-rule
 status: Draft
-version: 1.0.0
+version: 1.0.2
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
 last_reviewed: 2025-10-10
 next_review: 2026-04-10
 classification: Internal
-tags: [structured-notes, fcn, business-rules, data-mapping]
+tags: [fcn, business-rules, structured-notes, validation, v1.0]
 related:
   - specs/fcn-v1.0.md
   - er-fcn-v1.0.md
+  - manifest.yaml
   - ../../sa/handoff/domain-handoff-fcn-v1.0.md
+  - ../../sa/design-decisions/adr-003-fcn-version-activation.md
+  - ../../sa/design-decisions/adr-004-parameter-alias-policy.md
+  - ../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
-# FCN v1.0 Business Rules and Data Mapping
+# FCN v1.0 Business Rules
 
 ## 1. Purpose
+Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, calculation, data integrity, and governance. Each rule includes source and owner for auditability and to support API, data schema, and engine implementation.
 
-This document provides a comprehensive mapping between:
-- **JSON Schema Fields**: Input parameters defined in `fcn-v1.0-parameters.schema.json`
-- **Business Rules**: Validation and logic rules (BR-001 through BR-018)
-- **Data Model Attributes**: Persistent entities and attributes from the logical ER model
+## 2. Scope
+- **Validation**: Structural / param constraints at booking.
+- **Business Logic**: KI detection, coupon eligibility & amount, settlement.
+- **Data Integrity**: Basket & referential consistency.
+- **Governance**: Versioning & coverage gates.
+- **Precision**: Currency-driven numeric scale (DEC-011).
+- **Mapping**: End-to-end linkage from JSON schema → business rules → data model → runtime artifacts.
 
-This mapping serves Solution Architecture, audit requirements, and traceability for FCN v1.0.
+## 3. Business Rules Table
 
-## 2. Rule-Schema-Data Mapping Table
+| Rule ID | Category | Description | Source / Owner | Priority | Status | Normative Scope |
+|---------|----------|-------------|----------------|----------|--------|-----------------|
+| BR-001 | Validation | `trade_date ≤ issue_date < maturity_date` ordering | Spec fcn-v1.0.md §3 / BA | P0 | Draft | Yes |
+| BR-002 | Validation | All `initial_levels` > 0 | Spec §3 / BA | P0 | Draft | Yes |
+| BR-003 | Validation | `0 < knock_in_barrier_pct < redemption_barrier_pct ≤ 1.0` | Spec §3 / BA | P0 | Draft | Yes |
+| BR-004 | Validation | `documentation_version` equals active product version | Governance + Spec §3 / BA | P1 | Draft | Yes |
+| BR-005 | KI Logic | KI triggers if ANY underlying close ≤ `initial × knock_in_barrier_pct` on obs date | Spec §5 / BA | P0 | Draft | Yes |
+| BR-006 | Coupon Logic | Coupon condition: ALL closes ≥ `initial × coupon_condition_threshold_pct` | Spec §5 / BA | P0 | Draft | Yes |
+| BR-007 | Observation | Each observation date processed exactly once (idempotent) | Domain Handoff §7 / SA | P0 | Draft | Yes |
+| BR-008 | Coupon Logic | Memory accumulation capped by `memory_carry_cap_count` | Spec §3 & §5 / BA | P0 | Draft | Yes |
+| BR-009 | Coupon Calc | `coupon_amount = notional × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
+| BR-010 | Coupon Timing | Payment date aligned by observation index → `coupon_payment_dates[i]` | Spec §3 / BA | P0 | Draft | Yes |
+| BR-011 | Settlement | Par recovery pays 100% notional at maturity regardless of KI | Spec §2, §5 / BA | P0 | Draft | Yes |
+| BR-012 | Settlement | Proportional-loss (example only) delivers underlying units (non-normative) | Spec §2 (examples) / BA | P2 | Draft | Non-Normative |
+| BR-013 | Settlement | Final coupon eligibility independent of redemption calc | Spec §5 / BA | P1 | Draft | Yes |
+| BR-014 | Validation | Observation dates strictly increasing & each < maturity_date | Spec §3 / BA | P0 | Draft | Yes |
+| BR-015 | Validation | `underlying_symbols` length = `initial_levels` length | Spec §3 / BA | P0 | Draft | Yes |
+| BR-016 | Data Integrity | Basket weights (if provided) sum to 1.0 else equal-weight inferred | Domain Handoff §7, ER §6 / SA | P1 | Draft | Yes |
+| BR-017 | Governance | Normative test vector coverage needed for Proposed → Active | ADR-003 / SA | P0 | Draft | Yes |
+| BR-018 | Governance | Structural schema change requires new product version (alias policy) | ADR-004 / SA | P1 | Draft | Yes |
+| BR-019 | Validation (Precision) | Notional precision: scale≤2 (fractional currencies), scale=0 (zero-decimal set) & >0 | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
 
-| JSON Schema Field | Data Type | Required | Business Rule ID(s) | Data Model Entity.Attribute | Notes |
-|-------------------|-----------|----------|---------------------|----------------------------|-------|
-| trade_date | date | Yes | BR-001 | Trade.trade_date | Date of trade agreement; validated against issue_date |
-| issue_date | date | Yes | BR-001 | Trade.issue_date | Settlement/note inception; must be ≥ trade_date and < maturity_date |
-| maturity_date | date | Yes | BR-001, BR-014 | Trade.maturity_date | Final maturity; must be > issue_date and > all observation_dates |
-| underlying_symbols | array[string] | Yes | BR-002, BR-015 | Underlying_Asset.symbol | Ticker/ISIN identifiers; length must match initial_levels |
-| initial_levels | array[decimal] | Yes | BR-002, BR-015 | Underlying_Asset.initial_level | Reference levels at inception; all must be > 0 |
-| notional_amount | decimal | Yes | BR-009 | Trade.notional | Face amount in currency units; used in coupon calculation |
-| currency | string | Yes | - | Trade.currency | ISO-4217 settlement currency (e.g., USD, THB) |
-| observation_dates | array[date] | Yes | BR-007, BR-014 | Observation.observation_date | Scheduled observation dates; must be strictly increasing and < maturity_date |
-| coupon_observation_offset_days | integer | No | - | (Not persisted) | Business day offset for coupon observation timing |
-| coupon_payment_dates | array[date] | Yes | BR-010 | (Related to Observation) | Payment dates indexed by observation; each ≥ issue_date |
-| coupon_rate_pct | decimal | Yes | BR-009 | Trade.coupon_rate_pct | Period coupon rate as decimal; used in coupon amount calculation |
-| is_memory_coupon | boolean | No | BR-008 | Trade.is_memory_coupon | Memory feature flag; enables missed coupon accumulation |
-| memory_carry_cap_count | integer | No | BR-008 | (Business logic) | Limits accumulated unpaid coupons if is_memory_coupon=true; null = unlimited |
-| knock_in_barrier_pct | decimal | Yes | BR-003, BR-005 | Trade.knock_in_barrier_pct | KI barrier level as decimal; must be < redemption_barrier_pct |
-| barrier_monitoring | string | Yes | - | Trade.observation_style | Monitoring style; only "discrete" supported in v1.0 |
-| knock_in_condition | string | Yes | BR-005 | (Business logic) | Condition logic; only "any-underlying-breach" in v1.0 |
-| redemption_barrier_pct | decimal | Yes | BR-003 | (Business logic) | Final redemption barrier; must be > knock_in_barrier_pct and ≤ 1.0 |
-| settlement_type | string | Yes | BR-012 | Trade.settlement_type | Physical or cash settlement; baseline uses "physical-settlement" |
-| coupon_condition_threshold_pct | decimal | No | BR-006 | Trade.coupon_barrier_pct | Coupon eligibility threshold; defaults to 1.0 |
-| recovery_mode | string | Yes | BR-011, BR-012 | Trade.recovery_mode | Post-KI payoff: "par-recovery" (baseline) or "proportional-loss" |
-| day_count_convention | string | No | - | (Business logic) | Accrual convention (ACT/365, ACT/360); defaults to ACT/365 |
-| business_day_calendar | string | No | - | (Business logic) | Calendar for date adjustments; defaults to TARGET |
-| fx_reference | string | No | - | Trade.fx_reference | FX rate source; required if underlying currency ≠ settlement currency |
-| documentation_version | string | Yes | BR-004 | Trade.documentation_version | Traceability anchor; must match active product version |
+### 3.1 Notes
+- BR-012 is illustrative; excluded from v1.0 normative production flow.
+- BR-019 supersedes earlier informal precision wording.
 
-### Mapping Notes
+## 4. Rule Categories
+(See table above for membership.)
+- **Validation**: BR-001–004, 014, 015, 019
+- **Business Logic**: BR-005–013 (with BR-012 non-normative)
+- **Data Integrity**: BR-016
+- **Governance**: BR-017–018
+- **Precision**: BR-019
 
-1. **Array Fields**: `underlying_symbols` and `initial_levels` decompose into `Underlying_Asset` entity records with one-to-many relationship to `Trade`.
+## 5. Implementation Mapping
 
-2. **Observation Dates**: `observation_dates` array creates multiple `Observation` entity records, each linked to the parent `Trade`.
+| Layer | Guidance |
+|-------|----------|
+| API / Ingress | JSON Schema + custom cross-field checks (ordering, relational inequalities, precision) |
+| Domain Services | Lifecycle engine (KI, coupon, settlement); memory accumulator respecting cap |
+| Persistence | CHECK constraints (ordering, barrier relation, scale), unique / composite enforcement for observation idempotency if DB-level chosen |
+| Validation Scripts | Parameter validator implements BR-001–004, 014, 015, 019 early; logic validator later |
+| Observability | Emit `rule.validation.failure` with `rule_id`, pointer, severity |
+| Error Codes | Format: `ERR_FCN_<rule_id>` (e.g. BR-003 → ERR_FCN_BR_003) |
 
-3. **Business Logic Parameters**: Some fields (e.g., `knock_in_condition`, `memory_carry_cap_count`) drive business logic but may not persist as dedicated database columns; captured in constraints or computed fields.
+## 6. Rule–Schema–Data Mapping
 
-4. **Conditional Requirements**: 
-   - `memory_carry_cap_count` required only if `is_memory_coupon=true`
-   - `fx_reference` required if underlying currency ≠ settlement currency
+| JSON Schema Field / Derived | Data Model Entity.Attribute | Rule IDs | Normative? | Enforcement Layer(s) | Notes |
+|-----------------------------|-----------------------------|---------|-----------|----------------------|-------|
+| trade_date | Trade.trade_date | BR-001 | Yes | API, DB | Ordering chain |
+| issue_date | Trade.issue_date | BR-001 | Yes | API, DB |  |
+| maturity_date | Trade.maturity_date | BR-001 | Yes | API, DB |  |
+| initial_levels[] | Underlying_Asset.initial_level | BR-002, BR-015 | Yes | API, DB | Positive; length sync |
+| underlying_symbols[] | Underlying_Asset.symbol | BR-015 | Yes | API, DB | Distinct; align lengths |
+| knock_in_barrier_pct | Trade.knock_in_barrier_pct | BR-003, BR-005 | Yes | API, DB | Range + KI logic |
+| redemption_barrier_pct | Trade.redemption_barrier_pct | BR-003 | Yes | API, DB | Upper bound relation |
+| coupon_condition_threshold_pct | Trade.coupon_condition_threshold_pct | BR-006 | Yes | API | Level check factor |
+| observation_dates[] | Observation.observation_date | BR-007, BR-014 | Yes | API, DB (ordering), Logic | Idempotency + ordering |
+| coupon_payment_dates[] | Coupon_Decision.payment_date | BR-010 | Yes | API | Cardinality matches obs |
+| memory_carry_cap_count | Coupon_Decision.memory_carry_cap_count | BR-008 | Yes | API | Conditional presence |
+| is_memory_coupon (if present) | Trade.is_memory_coupon | BR-008, BR-009 | Yes | API | Drives accumulation path |
+| coupon_rate_pct | Trade.coupon_rate_pct | BR-009 | Yes | API | >0 |
+| notional | Trade.notional | BR-009, BR-019 | Yes | API, DB | Precision + amount base |
+| currency | Trade.currency | BR-019 | Yes | API, DB | Determines scale policy |
+| recovery_mode | Trade.recovery_mode | BR-011, BR-012 | Mixed | API | Par normative; proportional non-norm |
+| settlement_type | Trade.settlement_type | BR-012 | Non-Norm | API | Example only initially |
+| basket_weights[] | Underlying_Asset.weight | BR-016 | Yes | API, DB | Optional sum=1.0 |
+| documentation_version | Trade.documentation_version | BR-004, BR-018 | Yes | API | Governance alignment |
+| accrued_unpaid (derived) | Coupon_Decision.accrued_unpaid | BR-008, BR-009 | Yes | Logic | Runtime state |
+| coupon_amount (derived) | Coupon_Decision.coupon_amount | BR-009 | Yes | Logic | Calculated payout |
+| ki_triggered (derived) | Trade.ki_triggered_flag | BR-005 | Yes | Logic | Event flag |
+| version metadata | Product_Version.version_id | BR-018 | Yes | Governance | Promotion gate |
+| test vector metadata | Test_Vector.coverage_map | BR-017 | Yes | CI / Governance | Coverage gating |
 
-5. **Derived/Computed Fields**: Not in JSON schema but computed during lifecycle:
-   - `ki_triggered` (boolean): Derived from observation processing (BR-005)
-   - `eligible_coupon` (boolean[]): Per-period coupon eligibility (BR-006)
-   - `accrued_memory_count` (integer[]): Running count of unpaid coupons (BR-008)
+### 6.1 Coverage Metrics
 
-## 3. Business Rules Reference
+| Metric | Current (est.) | Target | Definition |
+|--------|----------------|--------|------------|
+| Schema fields mapped → rule(s) | 100% | 100% | Count of defined schema fields with ≥1 rule link (where constraint applies) |
+| Rules with schema or derived mapping | 100% | 100% | Each rule ties to at least a schema path or derived runtime attribute |
+| Normative rules with test vector linkage | 90% | 100% | BR-005–013 (excl. 012) + all validation rules mapped to vectors |
+| Governance rules automated checks | 50% | 100% | BR-017, BR-018 CI enforcement |
 
-The following business rules govern FCN v1.0 validation and lifecycle processing:
+## 7. Traceability Matrix
 
-| Rule ID | Category | Description | Priority |
-|---------|----------|-------------|----------|
-| BR-001 | Validation | trade_date ≤ issue_date < maturity_date | P0 |
-| BR-002 | Validation | All initial_levels > 0 | P0 |
-| BR-003 | Validation | 0 < knock_in_barrier_pct < redemption_barrier_pct ≤ 1.0 | P0 |
-| BR-004 | Validation | documentation_version must match active product version | P1 |
-| BR-005 | KI Logic | KI triggered if ANY underlying closes ≤ initial × knock_in_barrier_pct | P0 |
-| BR-006 | Coupon Logic | Coupon condition satisfied if ALL underlyings close ≥ initial × coupon_condition_threshold_pct | P0 |
-| BR-007 | Observation | Each observation date processed exactly once (idempotent) | P0 |
-| BR-008 | Coupon Logic | Memory accumulation capped at memory_carry_cap_count (if set) | P1 |
-| BR-009 | Coupon Calc | coupon_amount = notional × coupon_rate_pct × coupons_paid_count | P0 |
-| BR-010 | Coupon Timing | Payment date from coupon_payment_dates array, indexed by observation | P0 |
-| BR-011 | Settlement | Par recovery returns 100% notional at maturity (KI irrelevant) | P0 |
-| BR-012 | Settlement | Physical settlement delivers pro-rata underlying units if KI & proportional-loss | P1 |
-| BR-013 | Settlement | Final coupon evaluated separately from redemption logic | P1 |
-| BR-014 | Validation | Observation dates must be strictly increasing and < maturity_date | P0 |
-| BR-015 | Validation | underlying_symbols array length = initial_levels array length | P0 |
-| BR-016 | Data Integrity | Basket weights sum to 1.0 (if explicit; default equal-weight) | P2 |
-| BR-017 | Test Coverage | Normative test vectors required for Proposed → Active promotion | P0 |
-| BR-018 | Versioning | Parameter schema changes require new product version | P1 |
+| Rule ID | Source Section | ER Entity(Attributes) | JSON Schema Path(s) | Test Vector(s) |
+|---------|----------------|-----------------------|--------------------|----------------|
+| BR-001 | Spec §3 | Trade(trade_date, issue_date, maturity_date) | /trade_date /issue_date /maturity_date | All normative |
+| BR-002 | Spec §3 | Underlying_Asset(initial_level) | /initial_levels/items | All normative |
+| BR-003 | Spec §3 | Trade(knock_in_barrier_pct, redemption_barrier_pct) | /knock_in_barrier_pct /redemption_barrier_pct | All normative |
+| BR-004 | Spec §3 | Trade(documentation_version) | /documentation_version | All normative |
+| BR-005 | Spec §5 | Observation, Trade(ki_triggered) | (derived) | KI event vector |
+| BR-006 | Spec §5 | Coupon_Decision(condition_satisfied) | (derived) | Baseline, single-miss |
+| BR-007 | Domain Handoff §7 | Observation(is_processed) | (derived) | All normative |
+| BR-008 | Spec §3, §5 | Coupon_Decision(accrued_unpaid) | /memory_carry_cap_count | Memory baseline |
+| BR-009 | Spec §5 | Coupon_Decision(coupon_amount) | (derived) | All normative |
+| BR-010 | Spec §3 | Coupon_Decision(payment_date) | /coupon_payment_dates | All normative |
+| BR-011 | Spec §2, §5 | Trade(recovery_mode) | /recovery_mode | Baseline |
+| BR-012 | Spec §2 (example) | Trade(recovery_mode, settlement_type) | /recovery_mode /settlement_type | Future examples |
+| BR-013 | Spec §5 | Coupon_Decision(final coupon) | (derived) | All normative |
+| BR-014 | Spec §3 | Observation(observation_date) | /observation_dates/items | All normative |
+| BR-015 | Spec §3 | Underlying_Asset(symbol, initial_level) | /underlying_symbols /initial_levels | All normative |
+| BR-016 | Domain Handoff §7, ER §6 | Underlying_Asset(weight) | /basket_weights | Future basket |
+| BR-017 | ADR-003 | Test_Vector(metadata) | (metadata) | Activation checklist |
+| BR-018 | ADR-004 | Product_Version(version_id) | (version control) | Governance process |
+| BR-019 | DEC-011, Spec §3 | Trade(notional) | /notional | Precision tests |
 
-### Rule Categories
-- **Validation**: Input constraint enforcement (BR-001, BR-002, BR-003, BR-004, BR-014, BR-015)
-- **KI Logic**: Knock-in event determination (BR-005)
-- **Coupon Logic**: Coupon eligibility and payment (BR-006, BR-008)
-- **Coupon Calc**: Amount computation (BR-009)
-- **Coupon Timing**: Payment scheduling (BR-010)
-- **Settlement**: Maturity payoff calculation (BR-011, BR-012, BR-013)
-- **Observation**: Market data processing (BR-007)
-- **Data Integrity**: Referential and computational consistency (BR-016)
-- **Test Coverage**: Quality gates (BR-017)
-- **Versioning**: Change management (BR-018)
+## 8. Rule Validation Strategy
 
-## 4. Data Model Entity Summary
+| Phase | Focus | Rules | Status |
+|-------|-------|-------|--------|
+| 0 | Structure / metadata | (pre) | Complete |
+| 1 | Taxonomy & branch | BR-017 (gate) | Complete |
+| 2 | Parameter constraints | BR-001–004, 014, 015, 019 | In Progress |
+| 3 | Coverage mapping | BR-017 | In Progress |
+| 4 | Business logic simulation | BR-005–013, 016 | Planned |
+| 5 | Governance automation | BR-018 | Planned |
 
-The following entities persist FCN v1.0 trade data:
+## 9. Open Questions
 
-### Core Entities
+| ID | Question | Related Rule(s) | Owner | Target | Status |
+|----|----------|-----------------|-------|--------|--------|
+| OQ-BR-001 | Allow equality in BR-003 (`knock_in_barrier_pct == redemption_barrier_pct`) for niche structures? | BR-003 | BA | Week 1 | Open |
+| OQ-BR-002 | DB vs application enforcement for idempotency (BR-007)? | BR-007 | SA | Week 2 | Open |
+| OQ-BR-003 | Standard error payload schema fields (pointer, rule_id, severity)? | All | BA+SA | Week 2 | Open |
+| OQ-BR-004 | Introduce tolerance epsilon for BR-016 sum=1.0 (e.g. 0.0001)? | BR-016 | BA | Week 1 | Open |
 
-**Product**: Product definition and versioning metadata
-- Attributes: `product_id`, `product_code`, `product_name`, `spec_version`, `status`
+(Notional precision question removed — resolved by DEC-011 / BR-019.)
 
-**Product_Version**: Version-specific metadata and promotion state
-- Attributes: `version_id`, `product_id`, `version`, `status`, `spec_file_path`, `parameter_schema_path`
+## 10. Change Log
 
-**Branch**: Taxonomy-specific payoff branches
-- Attributes: `branch_id`, `product_id`, `version_id`, `branch_code`, `barrier_type`, `settlement`, `coupon_memory`, `recovery_mode`
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.0.0 | 2025-10-10 | siripong.s | Initial rules BR-001–BR-018 |
+| 1.0.1 | 2025-10-10 | siripong.s | Added BR-019 (precision), integrated mapping & traceability enhancements |
+| 1.0.2 | 2025-10-10 | siripong.s | Consolidated schema–rule–data mapping (PR #26), added coverage metrics |
 
-**Parameter_Definition**: Parameter metadata for a product version
-- Attributes: `parameter_id`, `version_id`, `parameter_name`, `parameter_type`, `required`, `constraints`, `description`
-
-### Trade Execution Entities
-
-**Trade**: Individual FCN trade instance
-- Attributes: `trade_id`, `product_id`, `branch_id`, `trade_date`, `issue_date`, `maturity_date`, `notional`, `currency`, `observation_style`, `knock_in_barrier_pct`, `coupon_rate_pct`, `coupon_barrier_pct`, `is_memory_coupon`, `recovery_mode`, `settlement_type`, `fx_reference`, `documentation_version`
-
-**Underlying_Asset**: Links trades to underlying assets
-- Attributes: `asset_id`, `trade_id`, `symbol`, `initial_level`, `weight`, `asset_type`
-
-**Observation**: Scheduled observation dates and events
-- Attributes: `observation_id`, `trade_id`, `observation_date`, `observation_index`, `is_processed`, `processed_at`
-
-**Underlying_Level**: Observed underlying asset levels
-- Attributes: `level_id`, `observation_id`, `asset_id`, `level`, `performance_pct`, `recorded_at`
-
-**Coupon_Decision**: Coupon payment decisions per observation
-- Attributes: `decision_id`, `observation_id`, `barrier_breached`, `coupon_paid`, `missed_coupons_accumulated`, `notes`
-
-**Settlement**: Final settlement calculation
-- Attributes: `settlement_id`, `trade_id`, `settlement_date`, `settlement_amount`, `ki_triggered`, `recovery_applied`, `physical_delivery_units`, `notes`
-
-## 5. Validation Cross-Reference
-
-### Schema Validation (parameter_validator.py)
-The JSON schema enforces:
-- Type conformance (string, number, boolean, date, array)
-- Required field presence
-- Numeric constraints (minimum, maximum, exclusiveMinimum, exclusiveMaximum)
-- String patterns (e.g., ISO-4217 currency codes)
-- Array constraints (minItems, item schemas)
-- Enum domain restrictions (e.g., recovery_mode, settlement_type)
-
-### Business Rule Validation
-Business rules enforce cross-field logic not expressible in JSON schema:
-- Date ordering (BR-001, BR-014)
-- Array length consistency (BR-015)
-- Numeric relationships (BR-003)
-- Conditional requirements (memory_carry_cap_count, fx_reference)
-- Basket weight summation (BR-016)
-
-## 6. Usage for Solution Architecture and Audits
-
-This mapping table supports:
-
-1. **Implementation Guidance**: Maps input parameters to persistence layer attributes
-2. **Test Coverage Planning**: Identifies which parameters exercise which business rules
-3. **Audit Traceability**: Links business requirements to data structures and validation logic
-4. **Change Impact Analysis**: Determines scope when modifying schemas, rules, or data models
-5. **Documentation Completeness**: Ensures all required fields have business rule coverage
-
-## 7. Related Documentation
-
-- [FCN v1.0 Specification](specs/fcn-v1.0.md): Full product specification
-- [FCN v1.0 Logical ER Model](er-fcn-v1.0.md): Detailed entity-relationship definitions
-- [Domain Handoff FCN v1.0](../../sa/handoff/domain-handoff-fcn-v1.0.md): Initial business rules table
-- [FCN Parameter Definitions Database](../../../../db/README.md): Database schema and field mapping
-- [FCN Validators](validators/README.md): Validation scripts and CI integration
-- [Structured Notes Conventions](../common/conventions.md): Naming and design conventions
-
-## 8. Change Log
-
-| Date | Version | Author | Changes |
-|------|---------|--------|---------|
-| 2025-10-10 | 1.0.0 | siripong.s@yuanta.co.th | Initial mapping table creation; complete first pass for FCN v1.0 |
-
----
-
-**Document Status**: Draft  
-**Review Cycle**: Semi-annual  
-**Next Review**: 2026-04-10
+## 11. References
+- [FCN v1.0 Specification](specs/fcn-v1.0.md)
+- [FCN v1.0 Entity-Relationship Model](er-fcn-v1.0.md)
+- [FCN v1.0 Domain Handoff Package](../../sa/handoff/domain-handoff-fcn-v1.0.md)
+- [Structured Notes Documentation Governance](../common/governance.md)
+- [ADR-003: Version Activation & Promotion Workflow](../../sa/design-decisions/adr-003-fcn-version-activation.md)
+- [ADR-004: Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
+- [DEC-011: Notional Precision Policy](../../sa/design-decisions/dec-011-notional-precision.md)
+- [Test Vectors](test-vectors/)
