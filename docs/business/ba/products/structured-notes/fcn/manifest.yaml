@@ -62,6 +62,8 @@ branches:
       step_feature: no-step
       recovery_mode: proportional-loss
     normative_vectors: []
+    # NOTE: Proportional-loss mode is non-normative in v1.0 baseline.
+    # Test vectors intentionally deferred to v1.1+ per ADR-003 scope definition.
 
 schemas:
   parameters: schemas/fcn-v1.0-parameters.schema.json
