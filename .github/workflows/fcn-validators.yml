@@ -1,0 +1,94 @@
+name: FCN v1.0 Validators
+
+on:
+  push:
+    paths:
+      - 'docs/business/ba/products/structured-notes/fcn/specs/**'
+      - 'docs/business/ba/products/structured-notes/common/**'
+      - 'docs/business/ba/products/structured-notes/fcn/test-vectors/**'
+      - 'docs/scripts/**'
+      - '.github/workflows/fcn-validators.yml'
+  pull_request:
+    paths:
+      - 'docs/business/ba/products/structured-notes/fcn/specs/**'
+      - 'docs/business/ba/products/structured-notes/common/**'
+      - 'docs/business/ba/products/structured-notes/fcn/test-vectors/**'
+      - 'docs/scripts/**'
+      - '.github/workflows/fcn-validators.yml'
+
+jobs:
+  validate-fcn:
+    name: FCN v1.0 Validation (Phases 0-2)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema pyyaml requests
+      
+      - name: Run Test Vector Ingestion
+        id: ingest
+        run: |
+          python3 docs/scripts/ingest_vectors.py
+          echo "status=$(jq -r '.status' test-vectors-ingestion.json)" >> $GITHUB_OUTPUT
+      
+      - name: Run Phase 0 - Metadata Validation
+        id: phase0
+        run: |
+          python3 docs/scripts/validate-fcn-metadata.py
+          echo "status=$(jq -r '.status' metadata-validation.json)" >> $GITHUB_OUTPUT
+      
+      - name: Run Phase 1 - Taxonomy Validation
+        id: phase1
+        run: |
+          python3 docs/scripts/validate_taxonomy.py
+          echo "status=$(jq -r '.status' taxonomy-validation.json)" >> $GITHUB_OUTPUT
+      
+      - name: Run Phase 2 - Parameters Validation
+        id: phase2
+        run: |
+          python3 docs/scripts/validate_parameters.py
+          echo "status=$(jq -r '.status' parameters-validation.json)" >> $GITHUB_OUTPUT
+      
+      - name: Upload validation reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fcn-validation-reports
+          path: |
+            test-vectors-ingestion.json
+            metadata-validation.json
+            taxonomy-validation.json
+            parameters-validation.json
+          retention-days: 30
+      
+      - name: Check validation status
+        if: always()
+        run: |
+          echo "=== Validation Summary ==="
+          echo "Test Vector Ingestion: ${{ steps.ingest.outputs.status }}"
+          echo "Phase 0 (Metadata): ${{ steps.phase0.outputs.status }}"
+          echo "Phase 1 (Taxonomy): ${{ steps.phase1.outputs.status }}"
+          echo "Phase 2 (Parameters): ${{ steps.phase2.outputs.status }}"
+          
+          # Fail if any validation failed
+          if [ "${{ steps.ingest.outputs.status }}" != "pass" ] || \
+             [ "${{ steps.phase0.outputs.status }}" != "pass" ] || \
+             [ "${{ steps.phase1.outputs.status }}" != "pass" ] || \
+             [ "${{ steps.phase2.outputs.status }}" != "pass" ]; then
+            echo ""
+            echo "❌ One or more validation phases failed"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All validation phases passed"
