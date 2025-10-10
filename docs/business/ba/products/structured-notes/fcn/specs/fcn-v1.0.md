@@ -19,7 +19,7 @@ related:
   - ../../../sa/design-decisions/adr-002-product-doc-structure.md
   - ../../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../../sa/design-decisions/adr-004-parameter-alias-policy.md
-activation_checklist_issue: .github/ISSUE_TEMPLATE/fcn-v1.0-activation-checklist.md
+activation_checklist_issue: https://github.com/YuantaIT-Siripong/Knowledge2/issues/3
 normative_test_vector_set:
   - N1
   - N2
@@ -123,7 +123,6 @@ Implementation Notes:
 - Redemption logic identical for KI and non-KI in baseline par-recovery; purpose is to keep v1.0 simple while allowing extension.
 
 ## 6. Taxonomy & Branch Inventory
-
 Declared taxonomy dimensions (see common/payoff_types.md):
 - barrier_type: down-in
 - settlement: physical-settlement
@@ -174,7 +173,7 @@ Planned normative test vector files (will reside in `../test-vectors/`):
 (normative_test_vector_set will list actual committed filenames once created)
 
 ## 11. Activation Checklist Reference
-The activation checklist for promoting this specification from Draft to Proposed status is tracked via GitHub issue template: `.github/ISSUE_TEMPLATE/fcn-v1.0-activation-checklist.md`
+The activation checklist for promoting this specification from Draft to Proposed status is tracked via GitHub issue: https://github.com/YuantaIT-Siripong/Knowledge2/issues/3
 
 This checklist is required for Proposed → Active promotion per ADR-003 and includes the following key gates:
 - Normative test vector set (N1–N5) present and verified
@@ -183,8 +182,6 @@ This checklist is required for Proposed → Active promotion per ADR-003 and inc
 - Governance reviewers confirmed (Product Owner, Risk, Technical, Documentation Steward)
 - Automation lint status: metadata, taxonomy, memory logic checked
 - Documentation review completed
-
-Create a new issue using the template to track activation progress.
 
 ## 12. Open Items
 | item | description | priority | target_version |
@@ -235,3 +232,4 @@ Current normative set (N1–N5) provides baseline validation for: coupon memory 
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial baseline specification draft |
 | 1.0.0-doc-update | 2025-10-09 | siripong.s@yuanta.co.th | Added Test Vector Coverage section (documentation only) |
+| 1.0.0-doc-update-2 | 2025-10-10 | siripong.s@yuanta.co.th | Linked activation checklist issue (#3) |
