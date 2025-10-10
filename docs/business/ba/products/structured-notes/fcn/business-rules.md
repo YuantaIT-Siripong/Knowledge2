@@ -2,7 +2,7 @@
 title: FCN v1.0 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.0.2
+version: 1.0.3
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -23,7 +23,7 @@ related:
 # FCN v1.0 Business Rules
 
 ## 1. Purpose
-Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, calculation, data integrity, and governance. Each rule includes source and owner for auditability and to support API, data schema, and engine implementation.
+Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, calculation, data integrity, and governance. Each rule includes source and owner for auditability and to support API, data model, validator, and lifecycle implementation.
 
 ## 2. Scope
 - **Validation**: Structural / param constraints at booking.
@@ -45,9 +45,9 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-006 | Coupon Logic | Coupon condition: ALL closes ≥ `initial × coupon_condition_threshold_pct` | Spec §5 / BA | P0 | Draft | Yes |
 | BR-007 | Observation | Each observation date processed exactly once (idempotent) | Domain Handoff §7 / SA | P0 | Draft | Yes |
 | BR-008 | Coupon Logic | Memory accumulation capped by `memory_carry_cap_count` | Spec §3 & §5 / BA | P0 | Draft | Yes |
-| BR-009 | Coupon Calc | `coupon_amount = notional × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
+| BR-009 | Coupon Calc | `coupon_amount = notional_amount × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
 | BR-010 | Coupon Timing | Payment date aligned by observation index → `coupon_payment_dates[i]` | Spec §3 / BA | P0 | Draft | Yes |
-| BR-011 | Settlement | Par recovery pays 100% notional at maturity regardless of KI | Spec §2, §5 / BA | P0 | Draft | Yes |
+| BR-011 | Settlement | Par recovery pays 100% notional_amount at maturity regardless of KI | Spec §2, §5 / BA | P0 | Draft | Yes |
 | BR-012 | Settlement | Proportional-loss (example only) delivers underlying units (non-normative) | Spec §2 (examples) / BA | P2 | Draft | Non-Normative |
 | BR-013 | Settlement | Final coupon eligibility independent of redemption calc | Spec §5 / BA | P1 | Draft | Yes |
 | BR-014 | Validation | Observation dates strictly increasing & each < maturity_date | Spec §3 / BA | P0 | Draft | Yes |
@@ -55,7 +55,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-016 | Data Integrity | Basket weights (if provided) sum to 1.0 else equal-weight inferred | Domain Handoff §7, ER §6 / SA | P1 | Draft | Yes |
 | BR-017 | Governance | Normative test vector coverage needed for Proposed → Active | ADR-003 / SA | P0 | Draft | Yes |
 | BR-018 | Governance | Structural schema change requires new product version (alias policy) | ADR-004 / SA | P1 | Draft | Yes |
-| BR-019 | Validation (Precision) | Notional precision: scale≤2 (fractional currencies), scale=0 (zero-decimal set) & >0 | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
+| BR-019 | Validation (Precision) | notional_amount precision: scale ≤2 (fractional), scale=0 (zero-decimal set) & >0 | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
 
 ### 3.1 Notes
 - BR-012 is illustrative; excluded from v1.0 normative production flow.
@@ -64,7 +64,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 ## 4. Rule Categories
 (See table above for membership.)
 - **Validation**: BR-001–004, 014, 015, 019
-- **Business Logic**: BR-005–013 (with BR-012 non-normative)
+- **Business Logic**: BR-005–013 (BR-012 non-normative)
 - **Data Integrity**: BR-016
 - **Governance**: BR-017–018
 - **Precision**: BR-019
@@ -75,7 +75,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |-------|----------|
 | API / Ingress | JSON Schema + custom cross-field checks (ordering, relational inequalities, precision) |
 | Domain Services | Lifecycle engine (KI, coupon, settlement); memory accumulator respecting cap |
-| Persistence | CHECK constraints (ordering, barrier relation, scale), unique / composite enforcement for observation idempotency if DB-level chosen |
+| Persistence | CHECK constraints (ordering, barrier relation, scale), unique/composite for observation idempotency |
 | Validation Scripts | Parameter validator implements BR-001–004, 014, 015, 019 early; logic validator later |
 | Observability | Emit `rule.validation.failure` with `rule_id`, pointer, severity |
 | Error Codes | Format: `ERR_FCN_<rule_id>` (e.g. BR-003 → ERR_FCN_BR_003) |
@@ -92,14 +92,14 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | knock_in_barrier_pct | Trade.knock_in_barrier_pct | BR-003, BR-005 | Yes | API, DB | Range + KI logic |
 | redemption_barrier_pct | Trade.redemption_barrier_pct | BR-003 | Yes | API, DB | Upper bound relation |
 | coupon_condition_threshold_pct | Trade.coupon_condition_threshold_pct | BR-006 | Yes | API | Level check factor |
-| observation_dates[] | Observation.observation_date | BR-007, BR-014 | Yes | API, DB (ordering), Logic | Idempotency + ordering |
+| observation_dates[] | Observation.observation_date | BR-007, BR-014 | Yes | API, DB, Logic | Idempotency + ordering |
 | coupon_payment_dates[] | Coupon_Decision.payment_date | BR-010 | Yes | API | Cardinality matches obs |
 | memory_carry_cap_count | Coupon_Decision.memory_carry_cap_count | BR-008 | Yes | API | Conditional presence |
 | is_memory_coupon (if present) | Trade.is_memory_coupon | BR-008, BR-009 | Yes | API | Drives accumulation path |
 | coupon_rate_pct | Trade.coupon_rate_pct | BR-009 | Yes | API | >0 |
-| notional | Trade.notional | BR-009, BR-019 | Yes | API, DB | Precision + amount base |
+| notional_amount | Trade.notional | BR-009, BR-019 | Yes | API, DB | Parameter key vs DB column (`notional`) |
 | currency | Trade.currency | BR-019 | Yes | API, DB | Determines scale policy |
-| recovery_mode | Trade.recovery_mode | BR-011, BR-012 | Mixed | API | Par normative; proportional non-norm |
+| recovery_mode | Trade.recovery_mode | BR-011, BR-012 | Mixed | API | par normative; proportional non-norm |
 | settlement_type | Trade.settlement_type | BR-012 | Non-Norm | API | Example only initially |
 | basket_weights[] | Underlying_Asset.weight | BR-016 | Yes | API, DB | Optional sum=1.0 |
 | documentation_version | Trade.documentation_version | BR-004, BR-018 | Yes | API | Governance alignment |
@@ -113,9 +113,9 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 
 | Metric | Current (est.) | Target | Definition |
 |--------|----------------|--------|------------|
-| Schema fields mapped → rule(s) | 100% | 100% | Count of defined schema fields with ≥1 rule link (where constraint applies) |
-| Rules with schema or derived mapping | 100% | 100% | Each rule ties to at least a schema path or derived runtime attribute |
-| Normative rules with test vector linkage | 90% | 100% | BR-005–013 (excl. 012) + all validation rules mapped to vectors |
+| Schema fields mapped → rule(s) | 100% | 100% | Schema fields with ≥1 rule link |
+| Rules with schema or derived mapping | 100% | 100% | Each rule mapped to schema path or derived field |
+| Normative rules with test vector linkage | 90% | 100% | BR-005–013 (excl. 012) + all validation rules |
 | Governance rules automated checks | 50% | 100% | BR-017, BR-018 CI enforcement |
 
 ## 7. Traceability Matrix
@@ -130,7 +130,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-006 | Spec §5 | Coupon_Decision(condition_satisfied) | (derived) | Baseline, single-miss |
 | BR-007 | Domain Handoff §7 | Observation(is_processed) | (derived) | All normative |
 | BR-008 | Spec §3, §5 | Coupon_Decision(accrued_unpaid) | /memory_carry_cap_count | Memory baseline |
-| BR-009 | Spec §5 | Coupon_Decision(coupon_amount) | (derived) | All normative |
+| BR-009 | Spec §5 | Coupon_Decision(coupon_amount) | (derived; uses /notional_amount) | All normative |
 | BR-010 | Spec §3 | Coupon_Decision(payment_date) | /coupon_payment_dates | All normative |
 | BR-011 | Spec §2, §5 | Trade(recovery_mode) | /recovery_mode | Baseline |
 | BR-012 | Spec §2 (example) | Trade(recovery_mode, settlement_type) | /recovery_mode /settlement_type | Future examples |
@@ -140,7 +140,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-016 | Domain Handoff §7, ER §6 | Underlying_Asset(weight) | /basket_weights | Future basket |
 | BR-017 | ADR-003 | Test_Vector(metadata) | (metadata) | Activation checklist |
 | BR-018 | ADR-004 | Product_Version(version_id) | (version control) | Governance process |
-| BR-019 | DEC-011, Spec §3 | Trade(notional) | /notional | Precision tests |
+| BR-019 | DEC-011, Spec §3 | Trade(notional) | /notional_amount | Precision tests |
 
 ## 8. Rule Validation Strategy
 
@@ -164,6 +164,12 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 
 (Notional precision question removed — resolved by DEC-011 / BR-019.)
 
+## Naming Note
+
+API / Schema parameter key: `notional_amount`  
+Persistence / ER attribute: `Trade.notional`  
+All rule text, mapping rows, formulas, and validator logic referencing the input parameter MUST use `notional_amount` to avoid confusion with derived monetary values.
+
 ## 10. Change Log
 
 | Version | Date | Author | Change |
@@ -171,6 +177,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | 1.0.0 | 2025-10-10 | siripong.s | Initial rules BR-001–BR-018 |
 | 1.0.1 | 2025-10-10 | siripong.s | Added BR-019 (precision), integrated mapping & traceability enhancements |
 | 1.0.2 | 2025-10-10 | siripong.s | Consolidated schema–rule–data mapping (PR #26), added coverage metrics |
+| 1.0.3 | 2025-10-10 | copilot | Hygiene: canonical parameter name notional_amount; mapping & traceability updates |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
