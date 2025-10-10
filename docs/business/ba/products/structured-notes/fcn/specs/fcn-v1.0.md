@@ -70,7 +70,7 @@ Investor receives fixed coupons at defined coupon observation/payment dates prov
 | is_memory_coupon | boolean | no | false | - | If true, missed coupons (due to barrier) can accrue and pay later when condition satisfied |
 | memory_carry_cap_count | integer | conditional | null | if is_memory_coupon=true then >=0 else null | Limits number of unpaid coupons that can accumulate (null = unlimited) |
 | knock_in_barrier_pct | decimal | yes | - | 0 < x < 1 | Barrier level as fraction of initial level (per underlying) triggering KI if breached |
-| barrier_monitoring | string | yes | "discrete" | enum: discrete | Monitoring style; only discrete supported in v1.0 |
+| barrier_monitoring | string | yes | "discrete" | enum: discrete (v1.0), continuous (deferred to v1.1+) | Monitoring style; only discrete supported in v1.0. Continuous monitoring deferred to future versions. |
 | knock_in_condition | string | yes | - | enum: any-underlying-breach | Condition logic: KI occurs if any underlying closes <= initial * knock_in_barrier_pct on any observation date |
 | redemption_barrier_pct | decimal | yes | - | 0 < x <= 1 | Final redemption barrier (for par redemption) |
 | settlement_type | string | yes | - | enum: physical-settlement | Allowed in v1.0 normative: physical-settlement (cash-settlement may appear in examples but is non-normative) |
@@ -84,6 +84,54 @@ Investor receives fixed coupons at defined coupon observation/payment dates prov
 Notes:
 - For baskets, barrier test and coupon condition evaluate each underlying independently (any breach for KI; all above threshold for coupon).
 - settlement_type constrained to physical-settlement for normative compliance; alternate settlement scenarios documented under examples.
+
+## 3.1. Parameter Enumeration Definitions
+
+This section defines the allowed enumeration values for key parameters, marking which values are in-scope for v1.0 and which are deferred to future versions.
+
+### 3.1.1 barrier_monitoring (Monitoring Type)
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| discrete | Barrier evaluated only on scheduled observation dates | **In-scope** | Normative for v1.0 baseline |
+| continuous | Barrier monitored continuously throughout life | Deferred to v1.1+ | Requires intraday market data infrastructure |
+
+**v1.0 Constraint:** Only `discrete` is supported. Continuous monitoring is explicitly deferred to v1.1+ and requires additional infrastructure for intraday market data capture and processing.
+
+### 3.1.2 settlement_type
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| physical-settlement | Deliver underlying assets at maturity | **In-scope (normative)** | Baseline normative settlement mode |
+| cash-settlement | Deliver cash equivalent at maturity | In-scope (non-normative) | May appear in examples but not in normative test vectors |
+
+**v1.0 Constraint:** `physical-settlement` is normative. `cash-settlement` may appear in illustrative examples but is non-normative.
+
+### 3.1.3 recovery_mode
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| par-recovery | Return 100% notional at maturity regardless of KI event | **In-scope (normative)** | Baseline normative recovery mode |
+| proportional-loss | Deliver underlying assets proportional to worst performance | In-scope (non-normative) | May appear in examples but not in normative test vectors |
+
+**v1.0 Constraint:** `par-recovery` is normative. `proportional-loss` may appear in illustrative examples but is non-normative.
+
+### 3.1.4 knock_in_condition
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| any-underlying-breach | KI triggered if any underlying breaches barrier | **In-scope** | Only condition supported in v1.0 |
+
+**v1.0 Constraint:** Only `any-underlying-breach` logic is supported. Alternative conditions (e.g., all-breach, worst-of) deferred to future versions.
+
+### 3.1.5 day_count_convention
+
+| Value | Description | v1.0 Status | Notes |
+|-------|-------------|-------------|-------|
+| ACT/365 | Actual days / 365 | **In-scope** | Default convention |
+| ACT/360 | Actual days / 360 | **In-scope** | Alternative convention |
+
+**v1.0 Constraint:** Both conventions supported. Default is `ACT/365`.
 
 ## 4. Derived / Computed Fields (Non-Input)
 | name | type | formula | description |

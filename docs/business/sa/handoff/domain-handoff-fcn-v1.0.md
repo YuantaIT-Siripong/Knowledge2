@@ -92,6 +92,8 @@ This document serves as the domain handoff package from Business Analysis to Sol
 | Proportional Loss | Recovery mode delivering underlying assets proportionally to breach level | Product Spec | Non-normative in v1.0 |
 | Physical Settlement | Delivery of underlying assets rather than cash equivalent | Product Spec | Normative for v1.0 |
 | Barrier Monitoring | Process of checking underlying levels against KI barrier on observation dates | Product Spec | Discrete only in v1.0 |
+| Discrete Monitoring | Barrier evaluated only on scheduled observation dates (v1.0 in-scope) | Product Spec | Normative monitoring type |
+| Continuous Monitoring | Barrier monitored continuously throughout life (deferred to v1.1+) | Product Spec | Future enhancement |
 | Observation Date | Scheduled date for evaluating coupon conditions and barrier breaches | Product Spec | Excludes maturity unless explicit |
 | Coupon Condition | Threshold requirement (e.g., all underlyings above X% of initial) for coupon payment | Product Spec | Independent per underlying |
 | Redemption Barrier | Final barrier level determining par redemption eligibility at maturity | Product Spec | Distinct from KI barrier |
@@ -99,6 +101,11 @@ This document serves as the domain handoff package from Business Analysis to Sol
 | Normative Test Vector | Required test case for version promotion from Proposed to Active | ADR-003 | Quality gate artifact |
 | Parameter Schema | JSON Schema defining trade parameters, types, and constraints | Technical | Validation contract |
 | Documentation Version | Traceability anchor linking trade to specification version | Product Spec | Audit requirement |
+| Draft Status | Product/version under initial development | Product Lifecycle | Pre-production status |
+| Proposed Status | Product/version ready for activation review | Product Lifecycle | Pre-production status |
+| Active Status | Product/version approved for trading | Product Lifecycle | Production status |
+| Deprecated Status | Product/version no longer recommended but existing trades continue | Product Lifecycle | Phase-out status |
+| Removed Status | Product/version fully retired, no new trades allowed | Product Lifecycle | Archived status |
 
 ---
 
@@ -257,6 +264,88 @@ erDiagram
 **Settlement Modes:**
 - Physical: Deliver underlying assets (normative for v1.0)
 - Cash: Pay cash equivalent (non-normative)
+
+### 4.3 Enumeration Definitions (v1.0 Scope)
+
+This subsection documents all enumeration values used in FCN v1.0, marking which values are in-scope for v1.0 and which are deferred to future versions.
+
+#### 4.3.1 Product / Product_Version Status
+
+**Enum Values:**
+- `Draft` - Specification under development (pre-production)
+- `Proposed` - Ready for activation review (pre-production)
+- `Active` - Production-ready and approved for trading
+- `Deprecated` - No longer recommended; existing trades continue
+- `Removed` - Fully retired; no new trades allowed
+
+**Status Transition Workflow:** Draft → Proposed → Active → Deprecated → Removed
+
+**v1.0 Scope:** All status values in-scope.
+
+#### 4.3.2 Trade Status (Lifecycle)
+
+**Enum Values:**
+- `booked` - Trade booked but not yet issued (v1.0 in-scope)
+- `active` - Trade issued and active (v1.0 in-scope)
+- `matured` - Trade reached maturity date (v1.0 in-scope)
+- `terminated` - Trade terminated early (deferred to v1.1+)
+- `redeemed` - Final settlement completed (v1.0 in-scope)
+
+**v1.0 Scope:** `booked`, `active`, `matured`, `redeemed` are in-scope. `terminated` deferred (early termination not supported).
+
+#### 4.3.3 Barrier Monitoring Type (monitoringType)
+
+**Enum Values:**
+- `discrete` - Barrier evaluated only on scheduled observation dates (v1.0 in-scope, normative)
+- `continuous` - Barrier monitored continuously throughout life (deferred to v1.1+)
+
+**v1.0 Scope:** Only `discrete` monitoring supported. Continuous monitoring requires intraday market data infrastructure (deferred).
+
+**Field Name:** `barrier_monitoring` in trade parameters
+
+#### 4.3.4 Settlement Type
+
+**Enum Values:**
+- `physical-settlement` - Deliver underlying assets at maturity (v1.0 in-scope, normative)
+- `cash-settlement` - Deliver cash equivalent at maturity (v1.0 in-scope, non-normative)
+
+**v1.0 Scope:** `physical-settlement` normative; `cash-settlement` may appear in examples only (non-normative).
+
+#### 4.3.5 Recovery Mode
+
+**Enum Values:**
+- `par-recovery` - Return 100% notional at maturity regardless of KI (v1.0 in-scope, normative)
+- `proportional-loss` - Deliver underlying proportional to worst performance (v1.0 in-scope, non-normative)
+
+**v1.0 Scope:** `par-recovery` normative; `proportional-loss` may appear in examples only (non-normative).
+
+#### 4.3.6 Knock-In Condition
+
+**Enum Values:**
+- `any-underlying-breach` - KI triggered if any underlying breaches barrier (v1.0 in-scope)
+- `all-underlying-breach` - KI triggered only if all underlyings breach (deferred to v1.1+)
+- `worst-of` - KI based on worst performing underlying (deferred to v1.1+)
+
+**v1.0 Scope:** Only `any-underlying-breach` supported.
+
+#### 4.3.7 Day Count Convention
+
+**Enum Values:**
+- `ACT/365` - Actual days / 365 (v1.0 in-scope, default)
+- `ACT/360` - Actual days / 360 (v1.0 in-scope)
+- `30/360` - 30 days per month / 360 days per year (deferred to v1.1+)
+
+**v1.0 Scope:** `ACT/365` and `ACT/360` supported; default is `ACT/365`.
+
+#### 4.3.8 Cash Flow Type
+
+**Enum Values:**
+- `coupon` - Periodic coupon payment (v1.0 in-scope)
+- `redemption` - Final principal redemption (v1.0 in-scope)
+- `fee` - Administrative or structuring fee (deferred to v1.1+)
+- `early-redemption` - Early termination payment (deferred to v1.1+)
+
+**v1.0 Scope:** Only `coupon` and `redemption` flow types supported.
 
 ---
 
