@@ -12,6 +12,8 @@ next_review: 2026-04-09
 classification: Internal
 tags: [structured-notes, fcn, product-spec, v1.0]
 related:
+  - ../non-functional.md
+  - ../er-fcn-v1.0.md
   - ../../../common/conventions.md
   - ../../../common/payoff_types.md
   - ../../../common/governance.md

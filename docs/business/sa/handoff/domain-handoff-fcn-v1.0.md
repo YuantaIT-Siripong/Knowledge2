@@ -13,6 +13,7 @@ classification: Internal
 tags: [fcn, handoff, domain-model, architecture, structured-notes]
 related:
   - ../../ba/products/structured-notes/fcn/specs/fcn-v1.0.md
+  - ../../ba/products/structured-notes/fcn/non-functional.md
   - ../../ba/products/structured-notes/fcn/er-fcn-v1.0.md
   - ../../ba/products/structured-notes/fcn/manifest.yaml
   - ../design-decisions/adr-002-product-doc-structure.md
@@ -513,6 +514,8 @@ Response: Settlement instruction (cash or physical delivery)
 ---
 
 ## 9. Non-Functional Drivers
+
+**Note:** Detailed non-functional requirements with concrete targets and acceptance criteria are documented in [FCN v1.0 Non-Functional Requirements](../../ba/products/structured-notes/fcn/non-functional.md). The following provides a high-level summary.
 
 ### 9.1 Performance Requirements
 - **Trade Booking Latency**: < 500ms p95
