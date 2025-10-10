@@ -64,13 +64,13 @@ This document serves as the domain handoff package from Business Analysis to Sol
 | Product Owner | Defines economic behavior, approves specification | siripong.s@yuanta.co.th | High |
 | Business Analyst | Documents requirements, validates test vectors | siripong.s@yuanta.co.th | High |
 | Solution Architect | Designs API & data model, defines integration | siripong.s@yuanta.co.th | High |
-| Backend Engineer | Implements pricing engine & lifecycle processing | TBD | High |
-| Data Engineer | Implements persistence & reporting pipelines | TBD | Medium |
-| Risk Manager | Reviews calibration scenarios & stress tests | TBD | Medium |
-| Compliance Officer | Validates regulatory alignment & audit trails | TBD | Medium |
-| QA Engineer | Validates test coverage & regression suite | TBD | High |
-| Front Office Trader | Books trades, monitors positions | TBD | Medium |
-| Middle Office Operations | Validates settlements & lifecycle events | TBD | Medium |
+| Backend Engineer | Implements pricing engine & lifecycle processing | engineering@yuanta.co.th | High |
+| Data Engineer | Implements persistence & reporting pipelines | data-engineering@yuanta.co.th | Medium |
+| Risk Manager | Reviews calibration scenarios & stress tests | risk@yuanta.co.th | Medium |
+| Compliance Officer | Validates regulatory alignment & audit trails | compliance@yuanta.co.th | Medium |
+| QA Engineer | Validates test coverage & regression suite | qa@yuanta.co.th | High |
+| Front Office Trader | Books trades, monitors positions | trading@yuanta.co.th | Medium |
+| Middle Office Operations | Validates settlements & lifecycle events | operations@yuanta.co.th | Medium |
 
 ### System Actors
 - **Trade Capture System**: Sources trade bookings

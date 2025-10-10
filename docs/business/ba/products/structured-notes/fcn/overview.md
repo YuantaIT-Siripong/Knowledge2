@@ -82,6 +82,24 @@ Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic 
 - Rule Mapping Coverage: Ensures each rule appears in at least one of: schema path mapping OR derived logic descriptor.
 - Precision Conformance: Enforces DEC-011 currency-aware scale before persistence.
 
+### KPI Measurement Specifications
+
+**Time-to-Launch (OQ-KPI-001 RESOLVED):**
+- Measurement starts at spec approval (ADR-003 Proposed status)
+- Measurement ends at production readiness checklist pass
+- Excludes early exploratory/drafting time before formal approval
+
+**KPI Data Collection Timing (OQ-KPI-002 RESOLVED):**
+- KPI data collected post-ETL (daily 06:00 UTC after nightly ETL completion)
+- Ensures data completeness and validation before metric calculation
+- Historical data available for trend analysis
+
+**SLA Alerting Thresholds (OQ-KPI-003 DEFERRED to Week 7-8):**
+- Final thresholds TBD based on 30-day baseline performance data
+- Interim thresholds: warning at +10% of target, critical at +25% of target
+- Owner: Operations team
+- Target resolution: Week 7-8 (post-baseline data collection)
+
 ## 5.3 KPI Dependencies
 
 | KPI | Dependent Rules / Decisions | Blocking Artifact |
@@ -135,11 +153,11 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 
 # 10. Open Questions
 
-| ID | Question | Dependency | Owner | Target |
-|----|----------|-----------|-------|--------|
-| OQ-KPI-001 | Should Time-to-Launch exclude governance drafting time? | ADR-003 metrics scope | Product | Week 2 |
-| OQ-KPI-002 | Do we snapshot KPI data before or after nightly ETL? | Data completeness accuracy | Data Eng | Week 1 |
-| OQ-KPI-003 | SLA thresholds for alerting (warn vs critical) | Dashboard design | BA + Ops | Week 3 |
+| ID | Question | Dependency | Owner | Target | Status |
+|----|----------|-----------|-------|--------|--------|
+| ~~OQ-KPI-001~~ | ~~Should Time-to-Launch exclude governance drafting time?~~ | ~~ADR-003 metrics scope~~ | ~~Product~~ | ~~Week 2~~ | **RESOLVED** (measure from spec approval) |
+| ~~OQ-KPI-002~~ | ~~Do we snapshot KPI data before or after nightly ETL?~~ | ~~Data completeness accuracy~~ | ~~Data Eng~~ | ~~Week 1~~ | **RESOLVED** (post-ETL at 06:00 UTC) |
+| OQ-KPI-003 | SLA thresholds for alerting (warn vs critical) | Baseline performance data | Ops | Week 7-8 | **DEFERRED** (interim: +10%/+25%) |
 
 # 11. Change Log
 
