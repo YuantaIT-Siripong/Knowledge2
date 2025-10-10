@@ -1,27 +1,25 @@
 ---
-title: Glossary
-doc_type: glossary
-owner: siripong.s@yuanta.co.th
-approver: siripong.s@yuanta.co.th
+title: FCN Glossary
+version: 1.0.1
 status: Draft
-version: 0.1.0
-created: 2025-10-09
-last_reviewed: 2025-10-09
-next_review: 2026-01-09
-classification: Internal
-tags: [glossary]
-related: []
+owner: siripong.s@yuanta.co.th
+tags: [fcn, glossary, v1.0]
+related:
+  - ../specs/fcn-v1.0.md
+  - ../business-rules.md
+  - ../../../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
-# Glossary
+# Glossary (delta excerpt)
 
-| Term | Definition | Owner | Source |
+| Term | Definition | Notes | Source |
 |------|------------|-------|--------|
-| Notional Amount | Face value of a financial instrument used as the reference amount for calculating payments. For FCN contracts, precision is 2 decimal places for standard currencies (USD, EUR, THB) and 0 decimal places for zero-decimal currencies (JPY, KRW). | BA | FCN v1.0 Spec |
-| (add) | | | |
+| Notional Amount | Principal amount on which coupon and redemption values are computed. Precision constrained by currency (BR-019 / DEC-011): 2 decimals for fractional currencies; 0 decimals for zero-decimal ISO currencies. | Rounding applied at external interfaces; internal calc may keep higher precision. | DEC-011, Spec §3 |
+| Notional Precision (Decision) | Policy defining scale allowed per ISO 4217 currency classification. | Drives DB schema & validation script enforcement. | DEC-011 |
+| Memory Carry Cap Count | Maximum accumulated unpaid coupons allowed when memory feature on. | Null when feature disabled. | Spec §3 |
 
-## Process to Add
-1. Open Issue labeled `glossary-add`.
-2. Provide proposed definition and context.
-3. Review & approval.
-4. PR updates table.
+# Change Log
+| Version | Date | Change |
+|---------|------|--------|
+| 1.0.0 | 2025-10-10 | Initial glossary |
+| 1.0.1 | 2025-10-10 | Added notional precision definitions (BR-019, DEC-011) |
