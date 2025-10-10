@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "missing_fields": [],
+  "inconsistencies": [],
+  "activation_issue_reachable": true,
+  "activation_issue_check_message": "HTTP 200 - Issue is reachable",
+  "file_path": "/home/runner/work/Knowledge2/Knowledge2/docs/business/ba/products/structured-notes/fcn/specs/fcn-v1.0.md",
+  "parse_error": ""
+}
