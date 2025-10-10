@@ -1,0 +1,184 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FCN v1.0 Parameters Schema",
+  "description": "JSON Schema definition for Fixed Coupon Note (FCN) v1.0 parameters",
+  "type": "object",
+  "properties": {
+    "trade_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of trade agreement"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Settlement / note inception date",
+      "constraints": "issue_date >= trade_date"
+    },
+    "maturity_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Contract final maturity",
+      "constraints": "maturity_date > issue_date"
+    },
+    "underlying_symbols": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Underlying instrument identifiers",
+      "constraints": "length >= 1; uppercase tickers"
+    },
+    "initial_levels": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "description": "Recorded initial spot/close for each underlying",
+      "constraints": "length = length(underlying_symbols); each > 0"
+    },
+    "notional_amount": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Face amount in currency units",
+      "constraints": "> 0"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Settlement currency",
+      "constraints": "ISO-4217 (e.g., TWD, USD)"
+    },
+    "observation_dates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Coupon & barrier observation schedule (excludes maturity if separately listed)",
+      "constraints": "strictly increasing; all < maturity_date"
+    },
+    "coupon_observation_offset_days": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Business day offset for observing coupon vs nominal schedule (0 = same day)",
+      "constraints": ">= 0"
+    },
+    "coupon_payment_dates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "When coupons (if any) are paid",
+      "constraints": "length = length(observation_dates); each >= issue_date"
+    },
+    "coupon_rate_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Period coupon rate (ratio form; display ×100%)",
+      "constraints": "0 < x <= 1"
+    },
+    "is_memory_coupon": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, missed coupons (due to barrier) can accrue and pay later when condition satisfied"
+    },
+    "memory_carry_cap_count": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "default": null,
+      "description": "Limits number of unpaid coupons that can accumulate (null = unlimited)",
+      "constraints": "if is_memory_coupon=true then >=0 else null"
+    },
+    "knock_in_barrier_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1,
+      "description": "Barrier level as fraction of initial level (per underlying) triggering KI if breached",
+      "constraints": "0 < x < 1"
+    },
+    "barrier_monitoring": {
+      "type": "string",
+      "enum": ["discrete"],
+      "default": "discrete",
+      "description": "Monitoring style; only discrete supported in v1.0"
+    },
+    "knock_in_condition": {
+      "type": "string",
+      "enum": ["any-underlying-breach"],
+      "description": "Condition logic: KI occurs if any underlying closes <= initial * knock_in_barrier_pct on any observation date"
+    },
+    "redemption_barrier_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Final redemption barrier (for par redemption)",
+      "constraints": "0 < x <= 1"
+    },
+    "settlement_type": {
+      "type": "string",
+      "enum": ["physical-settlement"],
+      "description": "Allowed in v1.0 normative: physical-settlement (cash-settlement may appear in examples but is non-normative)"
+    },
+    "coupon_condition_threshold_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "default": 1.0,
+      "description": "Minimum fraction of initial level each underlying must stay above for coupon payment",
+      "constraints": "0 < x <= 1"
+    },
+    "recovery_mode": {
+      "type": "string",
+      "enum": ["par-recovery"],
+      "default": "par-recovery",
+      "description": "Baseline normative recovery branch (proportional-loss deferred)"
+    },
+    "day_count_convention": {
+      "type": "string",
+      "enum": ["ACT/365", "ACT/360"],
+      "default": "ACT/365",
+      "description": "Used for accrual calculations if needed"
+    },
+    "business_day_calendar": {
+      "type": "string",
+      "default": "TARGET",
+      "description": "Calendar for date adjustments",
+      "constraints": "recognized calendar code"
+    },
+    "fx_reference": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "FX rate source identifier",
+      "constraints": "required if underlying currency != settlement currency"
+    },
+    "documentation_version": {
+      "type": "string",
+      "description": "Traceability anchor",
+      "constraints": "equals spec_version"
+    }
+  },
+  "required": [
+    "trade_date",
+    "issue_date",
+    "maturity_date",
+    "underlying_symbols",
+    "initial_levels",
+    "notional_amount",
+    "currency",
+    "observation_dates",
+    "coupon_payment_dates",
+    "coupon_rate_pct",
+    "knock_in_barrier_pct",
+    "barrier_monitoring",
+    "knock_in_condition",
+    "redemption_barrier_pct",
+    "settlement_type",
+    "recovery_mode",
+    "documentation_version"
+  ]
+}
