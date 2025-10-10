@@ -1,295 +1,160 @@
 ---
-title: Fixed Coupon Note (FCN) Product Overview
-doc_type: product-definition
+title: FCN v1.0 Overview & KPI Baselines
+doc_type: overview
 status: Draft
-version: 0.1.0
+version: 1.0.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
 last_reviewed: 2025-10-10
-next_review: 2026-04-10
+next_review: 2026-01-10
 classification: Internal
-tags: [structured-notes, fcn, product-definition, overview]
+tags: [fcn, overview, kpi, governance, structured-notes, v1.0]
 related:
   - specs/fcn-v1.0.md
-  - ../common/governance.md
-  - ../common/deprecation-alias-policy.md
+  - business-rules.md
+  - er-fcn-v1.0.md
+  - ../../sa/handoff/domain-handoff-fcn-v1.0.md
   - ../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../sa/design-decisions/adr-004-parameter-alias-policy.md
-  - ../../../../_policies/document-control-policy.md
+  - ../../sa/design-decisions/dec-011-notional-precision.md
+  - ../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
-# Fixed Coupon Note (FCN) Product Overview
+# 1. Product Summary
 
-## 1. Introduction
+Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Knock-in (KI) monitoring determines protective vs. example (non-normative) settlement behavior. This overview consolidates domain context and establishes KPI baselines used by governance (ADR-003) to evaluate readiness for promotion (Draft → Proposed → Active).
 
-Fixed Coupon Notes (FCN) are structured notes that pay periodic fixed coupons contingent on barrier conditions and offer conditional principal protection unless a knock-in (KI) event occurs. This document provides an overview of the FCN product family, with emphasis on versioning, change management, and governance practices.
+# 2. Objectives
 
-## 2. Product Summary
+1. Provide a single accessible synopsis for stakeholders (Product, Risk, Engineering).
+2. Establish measurable KPI baselines for continuous improvement.
+3. Link KPIs to normative rules (e.g., BR-017 coverage, BR-019 precision) ensuring traceability.
+4. Enable earlier detection of specification or parameter quality regressions.
 
-FCN products feature:
-- Single or basket underlying support
-- Memory or non-memory coupon structures
-- Down-in (knock-in) barrier monitoring
-- Physical or cash settlement options
-- Conditional principal protection
+# 3. Stakeholders (Summary)
 
-The baseline v1.0 specification establishes the normative foundation for all FCN implementations across the organization.
+| Role | Responsibility Focus | Primary Contact |
+|------|----------------------|-----------------|
+| Product Owner | Feature scope & commercial prioritization | siripong.s@yuanta.co.th |
+| Business Analyst | Specification integrity & rules traceability | siripong.s@yuanta.co.th |
+| Solution Architect | Integration & lifecycle design | siripong.s@yuanta.co.th |
+| Risk Manager | Scenario / stress assumptions validation | risk@yuanta.co.th |
+| Compliance Officer | Regulatory record & audit alignment | compliance@yuanta.co.th |
+| QA Engineer | Test vector & functional coverage | qa@yuanta.co.th |
+| Data Engineer | Data ingestion & lineage | data-engineering@yuanta.co.th |
+| Operations (Middle Office) | Post-trade events & reconciliation | operations@yuanta.co.th |
+| Trader (Front Office) | Trade entry accuracy | trading@yuanta.co.th |
+| Backend Engineer | Services & validation logic implementation | engineering@yuanta.co.th |
 
-## 3. Versioning & Change Strategy
+(Full detail lives in stakeholders.md.)
 
-### 3.1 Version Introduction Strategy
+# 4. Document Inventory (Selected)
 
-FCN specifications follow semantic versioning (MAJOR.MINOR.PATCH):
+| Artifact | Purpose | Status | Link |
+|----------|---------|--------|------|
+| Specification (specs/fcn-v1.0.md) | Parameter & payoff definition | Draft | specs/fcn-v1.0.md |
+| Business Rules (business-rules.md) | Rules BR-001..BR-019 | Draft | business-rules.md |
+| ER Model (er-fcn-v1.0.md) | Logical data representation | Draft | er-fcn-v1.0.md |
+| Domain Handoff | SA consumption package | Draft | ../../sa/handoff/domain-handoff-fcn-v1.0.md |
+| ADR-003 | Version activation workflow | Approved | ../../sa/design-decisions/adr-003-fcn-version-activation.md |
+| ADR-004 | Alias & deprecation policy | Approved | ../../sa/design-decisions/adr-004-parameter-alias-policy.md |
+| DEC-011 | Notional precision decision | Approved | ../../sa/design-decisions/dec-011-notional-precision.md |
+| Test Vectors | Normative coverage set | In Progress | test-vectors/ |
 
-**MAJOR versions** (e.g., v1.0 → v2.0):
-- Introduce breaking changes to parameter semantics
-- Require migration of existing implementations
-- Remove deprecated parameters (after completion of alias lifecycle)
-- May restructure payoff taxonomy or settlement logic
-- Require new activation checklist completion
+# 5. KPI Baselines
 
-**MINOR versions** (e.g., v1.0 → v1.1):
-- Add new features without breaking existing parameter semantics
-- Introduce new optional parameters
-- Begin parameter alias lifecycle (Stage 1: Introduce)
-- Add new recovery modes or settlement variations
-- Extend functionality (e.g., step-down barriers, autocall features)
-- Backward compatible with previous minor versions within same major
+## 5.1 KPI Table
 
-**PATCH versions** (e.g., v1.0.0 → v1.0.1):
-- Documentation corrections and clarifications
-- Fix typos or formatting issues
-- Add examples or test vectors
-- No parameter table changes
-- No impact on implementations
+| KPI | Baseline | Target (v1.0 Active Gate) | Owner | Measurement Method | Tool / Source | Frequency |
+|-----|----------|---------------------------|-------|--------------------|---------------|-----------|
+| Time-to-Launch (Spec Approval → Production Readiness) | 90 days | 60 days (v1.1 improvement goal) | Product Owner | Timestamp delta (spec approval vs. readiness checklist pass) | Governance checklist (ADR-003) | Per release |
+| Parameter Error Rate | 5% | < 2% | QA Engineer | Failed parameter validations / total validation attempts (rolling 30d) | parameter_validator.py (BR-001–004, 014, 015, 019) | Daily CI |
+| Data Completeness (Normative Branch Coverage) | 60% | ≥ 80% | Business Analyst | (# normative branches with full test vectors) / (total normative branches) | coverage_validator.py (BR-017 gating) | Per commit & Release |
+| Rule Mapping Coverage | 95% | 100% | Business Analyst | Mapped rules / total normative rules | mapping_report.json (schema-rule scan) | Weekly |
+| Precision Conformance (Notional) | 98% | 100% | Solution Architect | Valid precision payloads / total payloads | precision_audit.log (BR-019) | Daily |
+| Observation Idempotency Incidents | N/A (new) | 0 | Operations | Duplicate observation process attempts | lifecycle_engine logs (BR-007) | Real-time alert |
+| Test Vector Freshness (Avg Age) | 45 days | ≤ 30 days | QA Engineer | Mean days since last vector update (normative set) | repo metadata + CI report | Weekly |
 
-### 3.2 Parameter Change Management
+## 5.2 KPI Definitions
 
-Parameter changes are governed by the [Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md) and follow a controlled 4-stage lifecycle:
+- Parameter Error Rate: Only counts violations against normative validation rules (BR-001–004, BR-014, BR-015, BR-019). Governance or non-normative examples excluded.
+- Data Completeness: Normative branch definition per taxonomy finalization; excludes non-normative (e.g., proportional-loss).
+- Rule Mapping Coverage: Ensures each rule appears in at least one of: schema path mapping OR derived logic descriptor.
+- Precision Conformance: Enforces DEC-011 currency-aware scale before persistence.
 
-**Stage 1: Introduce (First version)**
-- Both legacy and new parameter names are valid
-- New name is canonical; legacy flagged with deprecation banner
-- Documentation includes alias mapping table
-- Test vectors may use either name
+## 5.3 KPI Dependencies
 
-**Stage 2: Stable Dual (Minimum one minor version cycle)**
-- Both names remain valid
-- Tooling emits warnings on new usage of legacy name
-- Existing implementations given time to migrate
-- Test vectors updated to prefer new name
+| KPI | Dependent Rules / Decisions | Blocking Artifact |
+|-----|-----------------------------|-------------------|
+| Parameter Error Rate | BR-001..004, 014, 015, 019 | parameter_validator.py |
+| Data Completeness | BR-017 | Test vectors set |
+| Precision Conformance | BR-019 / DEC-011 | precision checker |
+| Observation Idempotency | BR-007 | lifecycle processing design |
+| Rule Mapping Coverage | BR-001..019 | mapping extraction script |
+| Test Vector Freshness | BR-017 | CI coverage metadata |
+| Time-to-Launch | ADR-003, ADR-004 | Activation checklist |
 
-**Stage 3: Deprecation Notice (Next minor version)**
-- Legacy name marked "Deprecated – removal in next major"
-- Only backward compatibility parsing allowed
-- New usage fails validation
-- Test vectors must exclusively use new name
+# 6. Reporting & Dashboard
 
-**Stage 4: Removal (Next major version)**
-- Legacy name eliminated from specification
-- Schema and validation updated
-- Changelog documents removal
-- Migration guide provided
+Phased rollout:
+1. Phase A (Current): Raw JSON artifacts (param-validation.json, coverage_report.json, precision_audit.log).
+2. Phase B (Upcoming): Aggregation job producing kpi-snapshot.json (daily).
+3. Phase C (Future): Grafana / Looker dashboards with historical trend lines & SLA threshold coloration.
 
-**Parameter Addition**:
-- New optional parameters can be added in minor versions
-- Must not alter existing parameter semantics
-- Default values ensure backward compatibility
-- Documented in version's changelog
+Data retention for KPI snapshots follows DEC-011 storage tiers for alignment with audit expectations.
 
-**Parameter Modification**:
-- Type changes require major version bump
-- Constraint changes (ranges, enums) assessed for breaking impact
-- Non-breaking refinements allowed in minor versions
+# 7. Governance Integration
 
-### 3.3 Documentation Versioning Practices
+- Promotion Gate (Proposed → Active) requires:
+  - Data Completeness ≥ Target (BR-017)
+  - Parameter Error Rate < Target
+  - Precision Conformance = 100%
+- Regression triggers automatic “Needs Review” flag if:
+  - Parameter Error Rate ≥ Baseline × 1.5 for two consecutive days
+  - Data Completeness drops >10 percentage points week-over-week
+  - Any P0 rule loses mapping coverage
 
-All FCN documentation artifacts follow [Document Control Policy](../../../../_policies/document-control-policy.md) standards:
+# 8. Continuous Improvement Backlog
 
-**Specification Documents** (`specs/fcn-v*.md`):
-- Each spec version is a separate file (e.g., `fcn-v1.0.md`, `fcn-v1.1.md`)
-- Front matter includes `spec_version` and `version` fields
-- Status lifecycle: Draft → Proposed → Active → Deprecated → Archived
-- Cross-references maintained via `related` field in front matter
+| Ref | Improvement | KPI Impact | Priority | Owner |
+|-----|------------|-----------|----------|-------|
+| IMP-01 | Automate rule → schema diff check in CI | Rule Mapping Coverage | P1 | BA |
+| IMP-02 | Add precision validator to pre-commit hook | Precision Conformance | P2 | SA |
+| IMP-03 | Generate synthetic vectors for edge coupon memory cases | Data Completeness | P1 | QA |
+| IMP-04 | Add lifecycle idempotency audit job | Observation Idempotency | P2 | Ops |
+| IMP-05 | Introduce KPI trend anomaly detection (EWMA) | All (early drift) | P2 | Data Eng |
 
-**Test Vectors** (`test-vectors/fcn-v*-*.md`):
-- Namespaced by spec version (e.g., `fcn-v1.0-baseline.md`)
-- Normative subset tagged in spec front matter (`normative_test_vector_set`)
-- Must pass validation before spec promotion to Active
-- Legacy test vectors archived when spec deprecated
+# 9. Risks & Mitigations
 
-**Examples and Cases** (`examples/`, `cases/`):
-- May span multiple spec versions
-- Front matter indicates applicable version range
-- Updated when parameters or features change
-- Deprecated examples moved to archive
+| Risk | Category | Mitigation |
+|------|----------|------------|
+| Underestimated branch explosion delaying coverage | Delivery | Enforce early taxonomy freeze (ADR-003 Stage) |
+| Hidden precision drift in downstream rounding | Data Quality | BR-019 strict ingress validation + nightly reconciliation |
+| Idempotency gaps causing duplicate coupon logic | Operational | Introduce unique index (observation_id, trade_id) OR application lock (decide OQ-BR-002) |
+| Over-complex KPI set diluting focus | Process | Quarterly pruning—drop KPIs without decision utility |
 
-**Lifecycle Maps** (`lifecycle/*.md`):
-- Version-specific event mappings
-- Synchronized with spec releases
-- Changes tracked in changelog
+# 10. Open Questions
 
-### 3.4 Version Activation & Review Process
+| ID | Question | Dependency | Owner | Target |
+|----|----------|-----------|-------|--------|
+| OQ-KPI-001 | Should Time-to-Launch exclude governance drafting time? | ADR-003 metrics scope | Product | Week 2 |
+| OQ-KPI-002 | Do we snapshot KPI data before or after nightly ETL? | Data completeness accuracy | Data Eng | Week 1 |
+| OQ-KPI-003 | SLA thresholds for alerting (warn vs critical) | Dashboard design | BA + Ops | Week 3 |
 
-The [FCN Version Activation & Promotion Workflow](../../sa/design-decisions/adr-003-fcn-version-activation.md) establishes a governed promotion pipeline:
-
-**Draft → Proposed**:
-- Initial specification authored
-- Basic completeness check
-- Author and Product Owner review
-
-**Proposed → Active** (requires completion of [Activation Checklist](specs/_activation-checklist-template.md)):
-1. **Parameter Completeness**: All parameters defined with types, constraints, defaults
-2. **Naming Conformity**: Aligned with structured notes conventions
-3. **Taxonomy Stability**: Payoff branch codes referenced and stable
-4. **Test Coverage**: Normative test vector subset complete (N1-N5 minimum)
-   - Baseline scenarios (no barrier breach)
-   - Edge cases (barrier touch, single-period scenarios)
-   - KI event and recovery paths
-   - Multi-underlying basket scenarios
-5. **Risk Calibration**: Scenario coverage and stress testing reviewed
-6. **Implementation Parity**: Engine or pricing model alignment confirmed
-7. **Alias Management**: Naming conflicts resolved, deprecation policy applied
-8. **Lifecycle Mapping**: Event codes and asset buckets cross-checked
-9. **Changelog Entry**: Version differences documented
-10. **Sign-off**: Product Owner, Risk Reviewer, Technical Reviewer approval
-
-**Active → Deprecated**:
-- New major version supersedes previous
-- Transition period specified (typically 6-12 months)
-- Migration guide provided
-- Support timeline communicated
-
-**Deprecated → Archived**:
-- After transition period ends
-- All implementations migrated
-- Specification moved to `archive/YYYY/`
-- Front matter updated with `superseded_by` reference
-
-### 3.5 Review & Recertification Cadence
-
-Per [Structured Notes Documentation Governance](../common/governance.md):
-
-| Document Type | Review Frequency | Trigger Events |
-|---------------|------------------|----------------|
-| Product Spec (Active) | 6 months | Parameter changes, feature additions |
-| Product Spec (Deprecated) | Annual | Confirm migration progress |
-| Test Vectors | Per spec change | New spec version, parameter updates |
-| Examples | 6 months | Spec changes, user feedback |
-| Lifecycle Maps | 4 months | Event model changes |
-
-**Review Roles**:
-- **Product Owner**: Business semantics and economic correctness
-- **Risk Reviewer**: Scenario coverage and stress calibration
-- **Technical Reviewer**: Engine parity and naming conformity
-- **Documentation Steward**: Metadata validity and alias oversight
-
-**Review Actions**:
-- Validate continued accuracy of parameters and descriptions
-- Check for alignment with latest conventions
-- Update examples to reflect current best practices
-- Verify normative test vectors remain comprehensive
-- Update front matter `last_reviewed` and `next_review` dates
-
-### 3.6 Deprecation Process
-
-When a specification version is superseded:
-
-**1. Deprecation Announcement** (T+0):
-- Spec status changed to "Deprecated"
-- Deprecation notice added to spec document
-- New version referenced via `superseded_by` field
-- Communication sent to stakeholders
-
-**2. Transition Period** (T+0 to T+6 months):
-- Both old and new versions supported
-- Migration guide published
-- Implementation teams update systems
-- Dual-running test coverage maintained
-
-**3. Sunset Warning** (T+6 months):
-- Reminder communications sent
-- Support for deprecated version reduced
-- Only critical bug fixes applied
-
-**4. Removal** (T+12 months):
-- Deprecated spec moved to archive
-- Support ended
-- Legacy test vectors archived
-- Validation rules updated to reject old version
-
-**Early Deprecation Criteria**:
-- Critical security or compliance issues discovered
-- Severe economic miscalculation identified
-- Superseded by emergency patch
-
-## 4. Governance & Compliance
-
-### 4.1 Change Request Process
-
-**Minor Changes** (documentation, examples, non-breaking additions):
-- Direct pull request
-- Minimum 1 approver sign-off
-- Standard CI/CD validation
-
-**Major Changes** (breaking changes, new versions):
-- GitHub issue with impact rationale
-- Designated Approver + domain reviewer required
-- Activation checklist completion
-- Extended review period
-
-**Emergency Changes** (critical fixes):
-- Fast-track approval process
-- Post-implementation review within 1 week
-- Root cause analysis documented
-
-### 4.2 Tooling & Automation
-
-Current and planned automation:
-
-**Implemented**:
-- Front matter schema validation
-- Parameter validation against spec
-- Test vector validation
-
-**Planned** (see [Governance - Automation Roadmap](../common/governance.md)):
-- [ ] Alias lifecycle linter (Phase 1)
-- [ ] Metadata schema validation (doc_type-directory alignment)
-- [ ] Taxonomy tuple validator
-- [ ] Normative test vector tagging enforcement
-- [ ] Stale review date checker
-- [ ] Link integrity scanning
-
-### 4.3 Metrics & Monitoring
-
-Tracked governance metrics:
-- Spec promotion lead time (Draft → Active)
-- Activation checklist completion rate
-- Incomplete checklist rejections
-- Alias lifecycle adherence (on-time removals)
-- Documentation recertification compliance
-- Implementation divergence incidents per quarter
-
-## 5. Related Documentation
-
-**Specifications**:
-- [FCN v1.0 Specification](specs/fcn-v1.0.md) - Baseline specification
-
-**Governance & Policy**:
-- [Structured Notes Documentation Governance](../common/governance.md) - Product documentation governance
-- [Document Control Policy](../../../../_policies/document-control-policy.md) - Organization-wide documentation standards
-- [Deprecation & Alias Operational Policy](../common/deprecation-alias-policy.md) - Parameter naming and deprecation
-- [ADR-003: FCN Version Activation & Promotion Workflow](../../sa/design-decisions/adr-003-fcn-version-activation.md) - Activation decision record
-- [ADR-004: Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md) - Alias policy decision record
-
-**Supporting Artifacts**:
-- [Activation Checklist Template](specs/_activation-checklist-template.md) - Spec promotion checklist
-- [Structured Notes Conventions](../common/conventions.md) - Naming and parameter conventions
-- [Payoff Types](../common/payoff_types.md) - Product taxonomy
-
-## 6. Change Log
+# 11. Change Log
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| 0.1.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview document with versioning and change strategy section |
+| 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview & KPI baselines established |
+
+# 12. References
+
+- [FCN v1.0 Specification](specs/fcn-v1.0.md)
+- [Business Rules](business-rules.md)
+- [Entity-Relationship Model](er-fcn-v1.0.md)
+- [Domain Handoff](../../sa/handoff/domain-handoff-fcn-v1.0.md)
+- [ADR-003 Version Activation & Promotion](../../sa/design-decisions/adr-003-fcn-version-activation.md)
+- [ADR-004 Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
+- [DEC-011 Notional Precision Policy](../../sa/design-decisions/dec-011-notional-precision.md)
+- KPI Scripts (parameter_validator.py, coverage_validator.py, precision audit utilities)
