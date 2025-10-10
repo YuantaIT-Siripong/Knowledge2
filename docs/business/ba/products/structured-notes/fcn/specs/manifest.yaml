@@ -1,0 +1,48 @@
+product: FCN
+spec_version: 1.0.0
+status: Draft
+spec_file: fcn-v1.0.md
+activation_checklist_issue: "https://github.com/YuantaIT-Siripong/Knowledge2/issues/3"
+parameter_schema: fcn-v1.0-parameters.schema.json
+test_vector_schema: ../../common/validation/test-vector.schema.json
+branches:
+  - id: base_mem
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: memory
+      step_feature: no-step
+      recovery_mode: par-recovery
+  - id: base_nomem
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: no-memory
+      step_feature: no-step
+      recovery_mode: par-recovery
+normative_test_vectors:
+  - N1
+  - N2
+  - N3
+  - N4
+  - N5
+gaps_planned:
+  - N6
+  - N7
+  - N8
+  - N9
+  - N10
+  - N11
+non_normative_examples:
+  - EX1
+  - EX2
+governance:
+  product_owner: "siripong.s@yuanta.co.th"
+  risk_reviewer: "TBC"
+  technical_reviewer: "TBC"
+  documentation_steward: "TBC"
+validation_artifacts_dir: ../../common/validation/reports
+last_updated: "2025-10-10"
+notes: >
+  Manifest centralizes machine-readable pointers for tooling. Update 'status' and
+  'activation_checklist_issue' upon promotion stages; append new test vectors as they are added.
