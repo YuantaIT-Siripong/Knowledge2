@@ -89,11 +89,9 @@ def parse_taxonomy_dimensions(payoff_types_path: Path) -> Tuple[List[str], str]:
     
     # Extract dimension names from the tuple
     tuple_content = branch_coding_match.group(1)
-    # Match dimension names like "barrier_type", "settlement", etc.
-    dimensions = re.findall(r'(\w+)(?:\s*=|,|\))', tuple_content)
-    
-    # Clean up and validate
-    dimensions = [d.strip() for d in dimensions if d.strip()]
+    # Split by comma and clean up each dimension name
+    dimensions = [d.strip() for d in tuple_content.split(',')]
+    dimensions = [d for d in dimensions if d]
     
     if not dimensions:
         return [], "Could not extract dimension keys from payoff_types.md"
