@@ -495,6 +495,7 @@ This subsection documents all enumeration values used in FCN v1.0, marking which
 | BR-016 | Data Integrity | Basket weights sum to 1.0 (if explicit; default equal-weight) | Technical | SA | P2 | Draft |
 | BR-017 | Test Coverage | Normative test vectors required for Proposed → Active promotion | ADR-003 | SA | P0 | Draft |
 | BR-018 | Versioning | Parameter schema changes require new product version | ADR-004 | SA | P1 | Draft |
+| BR-019 | Validation | Notional amount precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW) | Spec §3 | BA | P1 | Draft |
 
 ### Rule Categories
 - **Validation**: Input constraint enforcement
@@ -663,6 +664,7 @@ Response: Settlement instruction (cash or physical delivery)
 | DEC-008 | 2025-10-10 | Observation dates exclude maturity unless explicitly listed | Clarity in scheduling, avoids double-counting | Accepted | BA |
 | DEC-009 | 2025-10-10 | Equal-weight basket default if weights not specified | Simplifies initial implementation, common use case | Proposed | SA |
 | DEC-010 | 2025-10-10 | Phase 0-2 validators required for Proposed status | Early quality feedback, prevents downstream rework | Accepted | SA |
+| DEC-011 | 2025-10-10 | Notional amount precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW) | Aligns with currency standards and industry practice; ensures consistent representation across systems | Accepted | BA |
 
 **Reference ADRs:**
 - [ADR-002: Product Documentation Structure](../design-decisions/adr-002-product-doc-structure.md)
@@ -675,9 +677,9 @@ Response: Settlement instruction (cash or physical delivery)
 
 ### 11.1 Open Questions
 
-| ID | Question | Impact | Owner | Target Resolution Date |
-|----|----------|--------|-------|------------------------|
-| OQ-001 | What precision (decimal places) should be used for percentage parameters (barrier_pct, coupon_rate_pct)? | Data model, API contract | SA | 2025-10-15 |
+| ID | Question | Impact | Owner | Target Resolution Date | Status |
+|----|----------|--------|-------|------------------------|--------|
+| OQ-001 | What precision (decimal places) should be used for percentage parameters (barrier_pct, coupon_rate_pct)? | Data model, API contract | SA | 2025-10-15 | Open |
 | OQ-002 | Should barrier monitoring type be extensible in schema for future continuous monitoring? | Schema design, migration path | SA | 2025-10-15 |
 | OQ-003 | What is the business day adjustment convention if observation date falls on holiday? | Coupon logic, calendar integration | BA | 2025-10-17 |
 | OQ-004 | How should we handle late-arriving market data (observation date passed but data not received)? | Error handling, SLA | SA | 2025-10-17 |
@@ -686,9 +688,15 @@ Response: Settlement instruction (cash or physical delivery)
 | OQ-007 | Should test vectors include negative test cases (invalid parameters) or only valid payoff scenarios? | Test strategy, validator scope | QA | 2025-10-20 |
 | OQ-008 | What level of audit trail detail is required for regulatory reporting (field-level vs record-level)? | Audit schema, storage cost | Compliance | 2025-10-25 |
 | OQ-009 | Should the system support backdated trade bookings (trade_date < system date)? | API logic, historical processing | SA | 2025-10-17 |
-| OQ-010 | How should FX rates be applied for cross-currency underlyings (spot, forward, or average)? | Pricing logic, data dependency | BA | 2025-10-22 |
+| OQ-010 | How should FX rates be applied for cross-currency underlyings (spot, forward, or average)? | Pricing logic, data dependency | BA | 2025-10-22 | Open |
 
-### 11.2 Assumptions
+### 11.2 Resolved Questions
+
+| ID | Question | Resolution | Resolved Date | Decision Ref |
+|----|----------|------------|---------------|--------------|
+| RQ-001 | What precision (decimal places) should be used for notional amount parameter? | 2 decimal places for standard currencies (USD, EUR, THB); 0 for zero-decimal currencies (JPY, KRW) | 2025-10-10 | DEC-011 |
+
+### 11.3 Assumptions
 
 | ID | Assumption | Risk if Invalid | Mitigation | Status |
 |----|------------|-----------------|------------|--------|
@@ -708,7 +716,8 @@ Response: Settlement instruction (cash or physical delivery)
 ## 12. Next Steps After Merge
 
 ### 12.1 Immediate Follow-Up (Week 1-2)
-- [ ] **Populate Rule Sources & Owners**: Assign specific spec section references to each business rule (BR-001 through BR-018)
+- [ ] **Populate Rule Sources & Owners**: Assign specific spec section references to each business rule (BR-001 through BR-019)
+- [x] **Resolve RQ-001**: Decimal precision for notional amount parameter (DEC-011: 2 decimal places for standard currencies, 0 for zero-decimal currencies)
 - [ ] **Resolve OQ-001**: Decimal precision for percentage parameters (coordinate with database team)
 - [ ] **Resolve OQ-005**: Clarify memory_carry_cap_count = 0 semantics (consult product owner)
 - [ ] **Create Schema-to-Rule Mapping Table**: Map JSON Schema constraints to business rules for traceability
@@ -745,6 +754,7 @@ Response: Settlement instruction (cash or physical delivery)
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial handoff package creation with all required sections |
+| 1.0.1 | 2025-10-10 | copilot | Added DEC-011 for notional precision, BR-019 validation rule, resolved RQ-001 open question |
 
 ---
 
