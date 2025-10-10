@@ -45,3 +45,7 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Validation outputs
+metadata-validation.json
+taxonomy-validation.json
