@@ -1,0 +1,217 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yuanta.co.th/schemas/structured-notes/fcn/test-vector",
+  "title": "FCN Test Vector Schema",
+  "description": "JSON Schema for FCN test vector structure and validation",
+  "type": "object",
+  "required": [
+    "vector_id",
+    "product_code",
+    "spec_version",
+    "description",
+    "taxonomy",
+    "parameters",
+    "expected_outputs"
+  ],
+  "properties": {
+    "vector_id": {
+      "type": "string",
+      "pattern": "^fcn-v[0-9]+\\.[0-9]+-[a-z0-9-]+$",
+      "description": "Unique test vector identifier (e.g., fcn-v1.0-base-mem-baseline)"
+    },
+    "product_code": {
+      "type": "string",
+      "pattern": "^FCN$",
+      "description": "Product code; must be 'FCN'"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Target specification version (e.g., 1.0.0)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Human-readable description of the test scenario"
+    },
+    "normative": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this vector is part of the normative test set for promotion"
+    },
+    "taxonomy": {
+      "type": "object",
+      "required": [
+        "barrier_type",
+        "settlement",
+        "coupon_memory",
+        "step_feature",
+        "recovery_mode"
+      ],
+      "properties": {
+        "barrier_type": {
+          "type": "string",
+          "enum": ["down-in", "down-and-in", "down-and-out", "up-and-in", "none"],
+          "description": "Barrier classification"
+        },
+        "settlement": {
+          "type": "string",
+          "enum": ["physical-settlement", "cash-settlement"],
+          "description": "Settlement mode"
+        },
+        "coupon_memory": {
+          "type": "string",
+          "enum": ["memory", "no-memory"],
+          "description": "Coupon accumulation style"
+        },
+        "step_feature": {
+          "type": "string",
+          "enum": ["step-down", "no-step"],
+          "description": "Barrier or coupon step evolution"
+        },
+        "recovery_mode": {
+          "type": "string",
+          "enum": ["par-recovery", "proportional-loss"],
+          "description": "Post knock-in payoff mode"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Taxonomy tuple identifying payoff branch"
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Input parameters conforming to fcn-v1.0-parameters.schema.json"
+    },
+    "market_scenario": {
+      "type": "object",
+      "properties": {
+        "underlying_levels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["observation_date", "levels"],
+            "properties": {
+              "observation_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "levels": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Underlying asset levels at observation date"
+              }
+            }
+          },
+          "description": "Observed underlying asset levels over time"
+        },
+        "fx_rates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "rate": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": true
+              }
+            }
+          },
+          "description": "FX rates if cross-currency"
+        }
+      },
+      "description": "Market scenario data for valuation"
+    },
+    "expected_outputs": {
+      "type": "object",
+      "required": ["knock_in_triggered", "total_coupon_paid"],
+      "properties": {
+        "knock_in_triggered": {
+          "type": "boolean",
+          "description": "Whether knock-in event occurred"
+        },
+        "knock_in_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date of knock-in event if occurred"
+        },
+        "total_coupon_paid": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total coupon amount paid over life"
+        },
+        "coupon_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["observation_date", "coupon_paid"],
+            "properties": {
+              "observation_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "coupon_paid": {
+                "type": "number",
+                "minimum": 0
+              },
+              "barrier_breached": {
+                "type": "boolean"
+              },
+              "missed_coupons_accumulated": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "Per-observation coupon payment decisions"
+        },
+        "redemption_amount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Final redemption amount at maturity"
+        },
+        "settlement_details": {
+          "type": "object",
+          "properties": {
+            "cash_amount": {
+              "type": "number"
+            },
+            "physical_delivery": {
+              "type": "object",
+              "properties": {
+                "asset": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "description": "Settlement-specific details"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Expected calculation outputs for validation"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["baseline", "edge", "stress", "ki-event", "recovery", "memory", "no-memory", "physical", "cash"]
+      },
+      "description": "Test vector classification tags"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional context or edge case explanation"
+    }
+  },
+  "additionalProperties": false
+}
