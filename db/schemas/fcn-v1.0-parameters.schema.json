@@ -42,8 +42,8 @@
     "notional_amount": {
       "type": "number",
       "exclusiveMinimum": 0,
-      "description": "Face amount in currency units",
-      "constraints": "> 0"
+      "description": "Face amount in currency units; precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW)",
+      "constraints": "> 0; precision: 2 decimal places for standard currencies, 0 for zero-decimal currencies"
     },
     "currency": {
       "type": "string",

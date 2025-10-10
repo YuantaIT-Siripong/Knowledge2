@@ -59,7 +59,7 @@ Investor receives fixed coupons at defined coupon observation/payment dates prov
 | maturity_date | date | yes | - | maturity_date > issue_date | Contract final maturity |
 | underlying_symbols | string[] | yes | - | length >= 1; uppercase tickers | Underlying instrument identifiers |
 | initial_levels | decimal[] | yes | - | length = length(underlying_symbols); each > 0 | Recorded initial spot/close for each underlying |
-| notional_amount | decimal | yes | - | > 0 | Face amount in currency units |
+| notional_amount | decimal | yes | - | > 0; precision: 2 decimal places for standard currencies (USD, EUR, THB); 0 for zero-decimal currencies (JPY, KRW) | Face amount in currency units |
 | currency | string | yes | - | ISO-4217 (e.g., TWD, USD) | Settlement currency |
 | observation_dates | date[] | yes | - | strictly increasing; all < maturity_date | Coupon & barrier observation schedule (excludes maturity if separately listed) |
 | coupon_observation_offset_days | integer | no | 0 | >= 0 | Business day offset for observing coupon vs nominal schedule (0 = same day) |
@@ -233,3 +233,4 @@ Current normative set (N1–N5) provides baseline validation for: coupon memory 
 | 1.0.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial baseline specification draft |
 | 1.0.0-doc-update | 2025-10-09 | siripong.s@yuanta.co.th | Added Test Vector Coverage section (documentation only) |
 | 1.0.0-doc-update-2 | 2025-10-10 | siripong.s@yuanta.co.th | Linked activation checklist issue (#3) |
+| 1.0.0-precision-clarification | 2025-10-10 | copilot | Clarified notional_amount precision constraint: 2 decimal places for standard currencies, 0 for zero-decimal currencies |

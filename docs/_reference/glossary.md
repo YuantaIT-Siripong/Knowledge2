@@ -17,6 +17,7 @@ related: []
 
 | Term | Definition | Owner | Source |
 |------|------------|-------|--------|
+| Notional Amount | Face value of a financial instrument used as the reference amount for calculating payments. For FCN contracts, precision is 2 decimal places for standard currencies (USD, EUR, THB) and 0 decimal places for zero-decimal currencies (JPY, KRW). | BA | FCN v1.0 Spec |
 | (add) | | | |
 
 ## Process to Add

@@ -97,7 +97,7 @@ Represents an individual FCN trade instance.
 - `trade_date`: Execution date
 - `issue_date`: Issuance date
 - `maturity_date`: Final maturity date
-- `notional`: Notional amount
+- `notional`: Notional amount (precision: 2 decimal places for standard currencies, 0 for zero-decimal currencies)
 - `currency`: Settlement currency (ISO-4217)
 - `observation_style`: Barrier style (american, european)
 - `knock_in_barrier_pct`: KI barrier level
