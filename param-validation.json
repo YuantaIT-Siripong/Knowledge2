@@ -1,0 +1,34 @@
+{
+  "status": "fail",
+  "payloads_tested": 3,
+  "violations": [
+    {
+      "path": "$.initial_levels",
+      "rule": "array_length_match",
+      "message": "Length of initial_levels (1) must equal length of underlying_symbols (2)",
+      "payload": "fcn-v1.0-invalid-payload.json"
+    },
+    {
+      "path": "$.observation_dates[3]",
+      "rule": "strictly_increasing",
+      "message": "observation_dates must be strictly increasing: 2026-06-30 >= 2026-06-30",
+      "payload": "fcn-v1.0-invalid-payload.json"
+    },
+    {
+      "path": "$.coupon_payment_dates",
+      "rule": "array_length_match",
+      "message": "Length of coupon_payment_dates (4) must equal length of observation_dates (5)",
+      "payload": "fcn-v1.0-invalid-payload.json"
+    },
+    {
+      "path": "$.memory_carry_cap_count",
+      "rule": "conditional_null",
+      "message": "memory_carry_cap_count must be null when is_memory_coupon is false",
+      "payload": "fcn-v1.0-invalid-payload.json"
+    }
+  ],
+  "summary": {
+    "errors": 4,
+    "warnings": 0
+  }
+}
