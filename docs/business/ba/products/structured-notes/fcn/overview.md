@@ -18,12 +18,11 @@ related:
   - ../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../sa/design-decisions/adr-004-parameter-alias-policy.md
   - ../../sa/design-decisions/dec-011-notional-precision.md
-  - ../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
 # 1. Product Summary
 
-Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Knock-in (KI) monitoring determines protective vs. example (non-normative) settlement behavior. This overview consolidates domain context and establishes KPI baselines used by governance (ADR-003) to evaluate readiness for promotion (Draft → Proposed → Active).
+Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Knock-in (KI) monitoring determines conditional principal protection behavior.
 
 # 2. Objectives
 
