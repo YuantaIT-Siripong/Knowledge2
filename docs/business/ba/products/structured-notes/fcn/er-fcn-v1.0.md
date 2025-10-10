@@ -2,7 +2,7 @@
 title: FCN v1.0 Logical Entity-Relationship Model
 doc_type: product-definition
 status: Draft
-version: 1.0.0
+version: 1.0.1
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -14,6 +14,7 @@ related:
   - specs/fcn-v1.0.md
   - manifest.yaml
   - migrations/m0001-fcn-baseline.sql
+  - ../../sa/design-decisions/dec-011-notional-precision.md
 ---
 
 # FCN v1.0 Logical Entity-Relationship Model
@@ -101,19 +102,19 @@ Defines parameter metadata for a product version.
 
 Represents an individual FCN trade instance.
 
-**Attributes:**
+**Attributes (updated):**
 - `trade_id` (PK): Unique trade identifier
 - `product_id` (FK → Product): Product definition
 - `branch_id` (FK → Branch): Applicable branch
 - `trade_date`: Execution date
 - `issue_date`: Issuance date
 - `maturity_date`: Final maturity date
-- `notional`: Notional amount (precision: 2 decimal places for standard currencies, 0 for zero-decimal currencies)
+- `notional` (source parameter: `notional_amount`; precision per DEC-011): Principal amount
 - `currency`: Settlement currency (ISO-4217)
-- `observation_style`: Barrier style (american, european)
+- `barrier_monitoring`: Monitoring style (enum: discrete) [replaces legacy `observation_style`]
 - `knock_in_barrier_pct`: KI barrier level
 - `coupon_rate_pct`: Coupon rate per period
-- `coupon_barrier_pct`: Coupon barrier threshold
+- `coupon_condition_threshold_pct`: Coupon condition threshold (replaces legacy `coupon_barrier_pct`)
 - `is_memory_coupon`: Memory flag
 - `recovery_mode`: Recovery mode
 - `settlement_type`: Settlement type
@@ -121,6 +122,9 @@ Represents an individual FCN trade instance.
 - `documentation_version`: Traceability version
 - `created_at`: Record creation timestamp
 - `updated_at`: Record update timestamp
+
+### 2.5.1 Attribute Naming Note
+Legacy attribute names (`observation_style`, `coupon_barrier_pct`) have been aligned to specification terms (`barrier_monitoring`, `coupon_condition_threshold_pct`) in documentation version 1.0.1. No aliases are active (see ADR-004). Database schema SHOULD adopt updated column names before promotion to Proposed.
 
 ### 2.6 Underlying_Asset
 
@@ -426,3 +430,4 @@ Future migrations (`m0002`, `m0003`, ...) will:
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial ER model for FCN v1.0 baseline |
+| 1.0.1 | 2025-10-10 | copilot | Hygiene: add DEC-011 link; rename observation_style→barrier_monitoring; coupon_barrier_pct→coupon_condition_threshold_pct; clarify notional source |
