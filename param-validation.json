@@ -1,6 +1,6 @@
 {
   "status": "fail",
-  "payloads_tested": 3,
+  "payloads_tested": 5,
   "violations": [
     {
       "path": "$.initial_levels",
