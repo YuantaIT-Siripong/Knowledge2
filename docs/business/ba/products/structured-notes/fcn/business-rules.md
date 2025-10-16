@@ -56,18 +56,24 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-017 | Governance | Normative test vector coverage needed for Proposed → Active | ADR-003 / SA | P0 | Draft | Yes |
 | BR-018 | Governance | Structural schema change requires new product version (alias policy) | ADR-004 / SA | P1 | Draft | Yes |
 | BR-019 | Validation (Precision) | notional_amount precision: scale ≤2 (fractional), scale=0 (zero-decimal set) & >0 | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
+| BR-020 | Validation | `0 < knock_out_barrier_pct <= 1.30` when present | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
+| BR-021 | Autocall Logic | On observation date, if ALL underlyings close >= initial × knock_out_barrier_pct AND trade not matured nor previously auto-called, redeem early (principal + due coupon); cease further observations | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
+| BR-022 | Governance (Issuer) | `issuer` must exist in approved issuer whitelist for active product version; mismatch blocks booking | Spec v1.1.0 §3 / BA | P1 | Draft | Yes |
+| BR-023 | Business Logic | `coupon_condition_threshold_pct` is independent of `knock_out_barrier_pct`; KO evaluation occurs prior to coupon condition; coupon condition may be <= KO barrier | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
 
 ### 3.1 Notes
 - BR-012 is illustrative; excluded from v1.0 normative production flow.
 - BR-019 supersedes earlier informal precision wording.
+- BR-020–023 added in v1.1.0 for autocall (knock-out) and issuer support.
 
 ## 4. Rule Categories
 (See table above for membership.)
-- **Validation**: BR-001–004, 014, 015, 019
-- **Business Logic**: BR-005–013 (BR-012 non-normative)
+- **Validation**: BR-001–004, 014, 015, 019, 020
+- **Business Logic**: BR-005–013 (BR-012 non-normative), 021, 023
 - **Data Integrity**: BR-016
-- **Governance**: BR-017–018
+- **Governance**: BR-017–018, 022
 - **Precision**: BR-019
+- **Autocall Logic**: BR-021, 023
 
 ## 5. Implementation Mapping
 
@@ -103,9 +109,14 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | settlement_type | Trade.settlement_type | BR-012 | Non-Norm | API | Example only initially |
 | basket_weights[] | Underlying_Asset.weight | BR-016 | Yes | API, DB | Optional sum=1.0 |
 | documentation_version | Trade.documentation_version | BR-004, BR-018 | Yes | API | Governance alignment |
+| issuer (v1.1.0+) | Trade.issuer | BR-022 | Yes | API, DB | Counterparty governance; whitelist validation |
+| knock_out_barrier_pct (v1.1.0+) | Trade.knock_out_barrier_pct | BR-020, BR-021 | Yes | API, DB | Autocall trigger threshold |
+| auto_call_observation_logic (v1.1.0+) | Trade.auto_call_observation_logic | BR-021 | Yes | API, DB | Autocall condition logic |
+| observation_frequency_months (v1.1.0+) | Trade.observation_frequency_months | (none) | No | API | Informational helper |
 | accrued_unpaid (derived) | Coupon_Decision.accrued_unpaid | BR-008, BR-009 | Yes | Logic | Runtime state |
 | coupon_amount (derived) | Coupon_Decision.coupon_amount | BR-009 | Yes | Logic | Calculated payout |
 | ki_triggered (derived) | Trade.ki_triggered_flag | BR-005 | Yes | Logic | Event flag |
+| autocall_triggered (derived, v1.1.0+) | Trade.autocall_triggered_flag | BR-021 | Yes | Logic | Early redemption flag |
 | version metadata | Product_Version.version_id | BR-018 | Yes | Governance | Promotion gate |
 | test vector metadata | Test_Vector.coverage_map | BR-017 | Yes | CI / Governance | Coverage gating |
 
@@ -115,8 +126,8 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |--------|----------------|--------|------------|
 | Schema fields mapped → rule(s) | 100% | 100% | Schema fields with ≥1 rule link |
 | Rules with schema or derived mapping | 100% | 100% | Each rule mapped to schema path or derived field |
-| Normative rules with test vector linkage | 90% | 100% | BR-005–013 (excl. 012) + all validation rules |
-| Governance rules automated checks | 50% | 100% | BR-017, BR-018 CI enforcement |
+| Normative rules with test vector linkage | 85% | 100% | BR-005–013 (excl. 012), BR-020–023 + all validation rules |
+| Governance rules automated checks | 50% | 100% | BR-017, BR-018, BR-022 CI enforcement |
 
 ## 7. Traceability Matrix
 
@@ -141,6 +152,10 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-017 | ADR-003 | Test_Vector(metadata) | (metadata) | Activation checklist |
 | BR-018 | ADR-004 | Product_Version(version_id) | (version control) | Governance process |
 | BR-019 | DEC-011, Spec §3 | Trade(notional) | /notional_amount | Precision tests |
+| BR-020 | Spec v1.1.0 §3 | Trade(knock_out_barrier_pct) | /knock_out_barrier_pct | v1.1.0 validation vectors |
+| BR-021 | Spec v1.1.0 §4 | Trade(knock_out_barrier_pct, auto_call_observation_logic), Observation(autocall_triggered) | /knock_out_barrier_pct /auto_call_observation_logic | fcn-v1.1.0-nomem-autocall-* |
+| BR-022 | Spec v1.1.0 §3 | Trade(issuer), Issuer_Whitelist(issuer_id) | /issuer | v1.1.0 governance vectors |
+| BR-023 | Spec v1.1.0 §4 | Trade(coupon_condition_threshold_pct, knock_out_barrier_pct) | /coupon_condition_threshold_pct /knock_out_barrier_pct | v1.1.0 precedence test |
 
 ## 8. Rule Validation Strategy
 
@@ -161,6 +176,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | OQ-BR-002 | DB vs application enforcement for idempotency (BR-007)? | BR-007 | SA | Week 2 | Open |
 | OQ-BR-003 | Standard error payload schema fields (pointer, rule_id, severity)? | All | BA+SA | Week 2 | Open |
 | OQ-BR-004 | Introduce tolerance epsilon for BR-016 sum=1.0 (e.g. 0.0001)? | BR-016 | BA | Week 1 | Open |
+| OQ-BR-005 | Should autocall trigger on equality (close == knock_out_barrier_pct × initial) or only strictly greater? | BR-021 | BA | Before v1.1.0 activation | Open |
 
 (Notional precision question removed — resolved by DEC-011 / BR-019.)
 
@@ -178,6 +194,7 @@ All rule text, mapping rows, formulas, and validator logic referencing the input
 | 1.0.1 | 2025-10-10 | siripong.s | Added BR-019 (precision), integrated mapping & traceability enhancements |
 | 1.0.2 | 2025-10-10 | siripong.s | Consolidated schema–rule–data mapping (PR #26), added coverage metrics |
 | 1.0.3 | 2025-10-10 | copilot | Hygiene: canonical parameter name notional_amount; mapping & traceability updates |
+| 1.1.0 | 2025-10-16 | copilot | Added BR-020–023 for v1.1.0 autocall & issuer support; extended mapping, traceability, and coverage metrics; added OQ-BR-005 |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)

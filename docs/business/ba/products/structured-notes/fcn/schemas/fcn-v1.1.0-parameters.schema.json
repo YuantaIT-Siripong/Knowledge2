@@ -1,0 +1,247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yuanta.co.th/schemas/structured-notes/fcn/v1.1/parameters",
+  "title": "FCN v1.1.0 Parameter Schema",
+  "description": "JSON Schema for Fixed Coupon Note (FCN) v1.1.0 parameters conformance validation. Extends v1.0 with autocall (knock-out) barrier and issuer support.",
+  "type": "object",
+  "required": [
+    "product_code",
+    "spec_version",
+    "trade_date",
+    "issue_date",
+    "maturity_date",
+    "notional",
+    "currency",
+    "issuer",
+    "underlying_assets",
+    "observation_dates",
+    "knock_in_barrier_pct",
+    "coupon_rate_pct",
+    "is_memory_coupon",
+    "recovery_mode",
+    "settlement_type"
+  ],
+  "properties": {
+    "product_code": {
+      "type": "string",
+      "pattern": "^FCN$",
+      "description": "Product identifier; must be 'FCN' for Fixed Coupon Note"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^1\\.1\\.\\d+$",
+      "description": "Specification version; must match v1.1.x"
+    },
+    "trade_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Trade execution date in ISO-8601 format (YYYY-MM-DD)"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Note issuance date in ISO-8601 format"
+    },
+    "maturity_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Final maturity date in ISO-8601 format"
+    },
+    "notional": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "description": "Notional amount; must be positive; precision: 2 decimal places for standard currencies (USD, EUR, THB), 0 for zero-decimal currencies (JPY, KRW)"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Settlement currency in ISO-4217 format (e.g., USD, THB)"
+    },
+    "issuer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Issuer identifier; must exist in approved issuer whitelist for counterparty risk and governance (BR-022)"
+    },
+    "underlying_assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["symbol", "initial_level"],
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Underlying asset identifier (e.g., ticker, ISIN)"
+          },
+          "initial_level": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Initial reference level; must be positive"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Basket weight (for multi-asset structures); defaults to equal weight"
+          }
+        }
+      },
+      "description": "Array of underlying asset specifications"
+    },
+    "observation_dates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Scheduled observation dates for coupon and barrier evaluation; strictly increasing order"
+    },
+    "observation_frequency_months": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "Optional helper: monthly interval between observations (informational); e.g., 3 for quarterly, 1 for monthly"
+    },
+    "knock_in_barrier_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "exclusiveMinimum": true,
+      "description": "Knock-in barrier as decimal ratio (e.g., 0.70 for 70%); triggers capital-at-risk when breached downward"
+    },
+    "knock_out_barrier_pct": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1.30,
+      "exclusiveMinimum": true,
+      "description": "Knock-out (autocall) barrier as decimal ratio (e.g., 1.10 for 110%); triggers early redemption when ALL underlyings exceed this level (BR-020, BR-021)"
+    },
+    "auto_call_observation_logic": {
+      "type": ["string", "null"],
+      "enum": ["all-underlyings", null],
+      "description": "Logic for autocall trigger evaluation; currently supports 'all-underlyings' only (all underlyings must close >= initial × knock_out_barrier_pct); required if knock_out_barrier_pct is present (BR-021)"
+    },
+    "coupon_rate_pct": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Coupon rate per period as decimal ratio (e.g., 0.03 for 3%)"
+    },
+    "coupon_barrier_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Coupon barrier threshold as decimal ratio; defaults to knock_in_barrier_pct if not specified; DEPRECATED: use coupon_condition_threshold_pct instead"
+    },
+    "coupon_condition_threshold_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 1.0,
+      "description": "Minimum fraction of initial level each underlying must stay above for coupon payment; independent of knock_out_barrier_pct (BR-023); can be <= knock_out_barrier_pct"
+    },
+    "is_memory_coupon": {
+      "type": "boolean",
+      "description": "True if unpaid coupons accumulate and pay later; false otherwise"
+    },
+    "memory_carry_cap_count": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Maximum number of unpaid coupons that can accumulate; null means unlimited; only applicable if is_memory_coupon is true"
+    },
+    "recovery_mode": {
+      "type": "string",
+      "enum": ["par-recovery", "proportional-loss"],
+      "description": "Post knock-in payoff mode: par-recovery (100% notional) or proportional-loss (worst performance)"
+    },
+    "settlement_type": {
+      "type": "string",
+      "enum": ["physical-settlement", "cash-settlement"],
+      "description": "Settlement mode at maturity"
+    },
+    "barrier_monitoring": {
+      "type": "string",
+      "enum": ["discrete", "continuous"],
+      "default": "discrete",
+      "description": "Barrier monitoring style: discrete (observation dates only) or continuous (intraday monitoring); only discrete supported in v1.1"
+    },
+    "knock_in_condition": {
+      "type": "string",
+      "enum": ["any-underlying-breach"],
+      "description": "Condition logic for knock-in: any-underlying-breach means KI occurs if ANY underlying closes <= initial × knock_in_barrier_pct"
+    },
+    "redemption_barrier_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "exclusiveMinimum": true,
+      "description": "Final redemption barrier for par redemption eligibility"
+    },
+    "observation_style": {
+      "type": "string",
+      "enum": ["american", "european"],
+      "default": "american",
+      "description": "DEPRECATED: use barrier_monitoring instead; Barrier monitoring style: american (continuous) or european (discrete)"
+    },
+    "coupon_observation_offset_days": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Business day offset for observing coupon vs nominal schedule (0 = same day)"
+    },
+    "coupon_payment_dates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Payment dates for coupons; length must equal length of observation_dates"
+    },
+    "day_count_convention": {
+      "type": "string",
+      "enum": ["ACT/365", "ACT/360", "30/360"],
+      "default": "ACT/365",
+      "description": "Day count convention for accrual calculations"
+    },
+    "business_day_calendar": {
+      "type": "string",
+      "default": "TARGET",
+      "description": "Business day calendar code for date adjustments (e.g., TARGET, NYC, TKY)"
+    },
+    "fx_reference": {
+      "type": ["string", "null"],
+      "description": "FX rate source identifier; required if underlying currency differs from settlement currency"
+    },
+    "documentation_version": {
+      "type": "string",
+      "pattern": "^1\\.1\\.\\d+$",
+      "default": "1.1.0",
+      "description": "Traceability anchor matching spec_version for governance (BR-004, BR-018)"
+    }
+  },
+  "allOf": [
+    {
+      "description": "If knock_out_barrier_pct is present, auto_call_observation_logic must be present",
+      "if": {
+        "properties": {
+          "knock_out_barrier_pct": {
+            "type": "number"
+          }
+        },
+        "required": ["knock_out_barrier_pct"]
+      },
+      "then": {
+        "properties": {
+          "auto_call_observation_logic": {
+            "type": "string",
+            "enum": ["all-underlyings"]
+          }
+        },
+        "required": ["auto_call_observation_logic"]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

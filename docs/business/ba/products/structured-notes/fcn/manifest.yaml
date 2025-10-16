@@ -28,6 +28,22 @@ versions:
     release_date: null
     deprecated_date: null
 
+  - version: 1.1.0
+    status: Proposed
+    spec_file: specs/fcn-v1.1.0.md
+    parameter_schema: schemas/fcn-v1.1.0-parameters.schema.json
+    activation_checklist: TBD
+    promotion_requirements:
+      - All v1.0 promotion requirements met
+      - Autocall (knock-out) test vectors validated
+      - Issuer whitelist governance process defined and operational
+      - BR-020 through BR-023 implemented and tested
+      - Payoff precedence order (KO → Coupon → KI) validated
+      - Backward compatibility with v1.0 confirmed
+      - Migration script m0002 tested and validated
+    release_date: null
+    deprecated_date: null
+
 branches:
   - branch_id: fcn-base-mem
     description: Memory coupon, par-recovery, physical settlement
@@ -63,8 +79,22 @@ branches:
       recovery_mode: proportional-loss
     normative_vectors: []
 
+  - branch_id: fcn-base-nomem-autocall
+    description: No-memory coupon, autocall enabled, par-recovery, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: no-memory
+      step_feature: autocall
+      recovery_mode: par-recovery
+    normative_vectors:
+      - fcn-v1.1.0-nomem-autocall-baseline
+      - fcn-v1.1.0-nomem-autocall-trigger
+      - fcn-v1.1.0-nomem-autocall-no-trigger-edge
+
 schemas:
-  parameters: schemas/fcn-v1.0-parameters.schema.json
+  parameters_v1_0: schemas/fcn-v1.0-parameters.schema.json
+  parameters_v1_1: schemas/fcn-v1.1.0-parameters.schema.json
   test_vector: schemas/test-vector.schema.json
 
 migrations:
@@ -73,6 +103,12 @@ migrations:
     description: Core product, branches, taxonomy, parameters, trades
     applied: false
     depends_on: []
+
+  - migration_id: m0002
+    file: migrations/m0002-fcn-v1_1-autocall-extension.sql
+    description: FCN v1.1.0 extensions - autocall (knock-out) barrier and issuer support
+    applied: false
+    depends_on: [m0001]
 
 validators:
   - validator_id: phase-0-metadata
@@ -91,7 +127,9 @@ validators:
     description: Parameter schema conformance and constraint validation
 
 documentation:
-  spec: specs/fcn-v1.0.md
+  spec_v1_0: specs/fcn-v1.0.md
+  spec_v1_1: specs/fcn-v1.1.0.md
+  schema_diff_v1_0_to_v1_1: schema-diff-v1.0-to-v1.1.md
   er_model: er-fcn-v1.0.md
   validator_roadmap: validator-roadmap.md
   test_vectors_dir: test-vectors/
@@ -118,3 +156,7 @@ change_log:
     date: 2025-10-10
     author: siripong.s@yuanta.co.th
     changes: Added schemas, manifest, migrations, validators for Phase 0-2 implementation
+  - version: 1.1.0
+    date: 2025-10-16
+    author: copilot
+    changes: Added v1.1.0 with autocall (knock-out) barrier and issuer support; new branch fcn-base-nomem-autocall; migration m0002; business rules BR-020 through BR-023; schema diff documentation
