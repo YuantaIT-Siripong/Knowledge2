@@ -33,7 +33,7 @@ versions:
     status: Proposed
     spec_file: specs/fcn-v1.1.0.md
     parameter_schema: schemas/fcn-v1.1.0-parameters.schema.json
-    activation_checklist: TBD
+    activation_checklist: specs/_activation-checklist-v1.1.0.md
     promotion_requirements:
       - All v1.0 promotion requirements met
       - Autocall (knock-out) test vectors validated
