@@ -2,7 +2,7 @@
 title: FCN Issuer Whitelist Governance
 doc_type: governance
 status: Draft
-version: 1.0.0
+version: 1.0.1
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-16
@@ -14,6 +14,7 @@ related:
   - business-rules.md
   - schemas/fcn-v1.1.0-parameters.schema.json
   - ../../sa/design-decisions/adr-003-fcn-version-activation.md
+  - data/issuer_whitelist.json
 ---
 
 # FCN Issuer Whitelist Governance
@@ -63,12 +64,71 @@ Defines the governance process for managing the approved issuer whitelist for Fi
 
 ## 4. Whitelist Structure
 
-### 4.1 Issuer Identifier Format
+### 4.1 Whitelist Data Model
+
+The operational issuer whitelist is maintained in the structured data file [data/issuer_whitelist.json](data/issuer_whitelist.json). This file contains a JSON array of approved issuer records, each conforming to the data model defined below.
+
+**Purpose**: 
+- Provides machine-readable issuer reference data for BR-022 validation integration
+- Enables automated issuer existence checks during trade booking
+- Supports exposure monitoring and reporting workflows
+- Serves as the single source of truth for approved counterparties
+
+**Schema Structure**:
+Each issuer object includes the following attributes:
+
+| Field | Type | Description | Required |
+|-------|------|-------------|----------|
+| `id` | string | Unique issuer identifier (internal code or LEI) | Yes |
+| `legal_name` | string | Legal entity name of the issuer | Yes |
+| `jurisdiction` | string | Country/region of incorporation | Yes |
+| `credit_rating` | string | Credit rating (S&P / Moody's / Fitch equivalent) | Yes |
+| `status` | string | Whitelist status: Active, Suspended, or Removed | Yes |
+| `approval_date` | string | Date issuer was approved (ISO 8601 format: YYYY-MM-DD) | Yes |
+| `exposure_limit_usd` | number | Maximum exposure limit in USD | Yes |
+| `review_frequency` | string | Review cadence: quarterly, semi-annual, or annual | Yes |
+| `risk_manager_contact` | string | Email of responsible risk manager | Yes |
+
+**Example JSON Entry** (from [data/issuer_whitelist.json](data/issuer_whitelist.json)):
+```json
+{
+  "id": "VONTOBEL-CH-001",
+  "legal_name": "Vontobel Financial Products Ltd",
+  "jurisdiction": "Switzerland",
+  "credit_rating": "A (S&P)",
+  "status": "Active",
+  "approval_date": "2025-09-15",
+  "exposure_limit_usd": 50000000,
+  "review_frequency": "quarterly",
+  "risk_manager_contact": "risk-manager@yuanta.co.th"
+}
+```
+
+**Sample Issuers**:
+The initial whitelist includes three pre-approved issuers:
+- **VONTOBEL-CH-001**: Vontobel Financial Products Ltd (Switzerland, A rating)
+- **HSBC-UK-001**: HSBC Bank plc (United Kingdom, A+ rating)
+- **JPMORGAN-US-001**: JPMorgan Chase Bank, N.A. (United States, A+ rating)
+
+**Maintenance**:
+- File updates follow standard version control and approval workflow
+- Schema validation enforced via JSON Schema (planned Phase 2 extension)
+- Changes trigger automatic notification to stakeholders
+
+**Integration with BR-022**:
+- Phase 2 validator will programmatically load this file at runtime
+- Trade booking will validate `issuer` parameter against the `id` field
+- Invalid issuer references will be rejected with error code `ERR_FCN_BR_022_ISSUER_NOT_WHITELISTED`
+- See section 5.1 for detailed BR-022 enforcement mechanics
+
+### 4.2 Issuer Identifier Format
 - **Standard**: Legal Entity Identifier (LEI) preferred; internal issuer code as fallback
 - **Validation**: BR-022 enforces issuer existence check at trade booking
-- **Data Source**: Maintained in `issuer_master` table (database) or equivalent reference data system
+- **Data Source**: Maintained in [data/issuer_whitelist.json](data/issuer_whitelist.json)
 
-### 4.2 Issuer Attributes
+### 4.3 Issuer Attributes (Legacy Reference)
+**Note**: This section is retained for historical context. The authoritative data model is now defined in section 4.1 Whitelist Data Model.
+
 Each approved issuer record includes:
 - Issuer identifier (LEI or internal code)
 - Legal entity name
@@ -80,7 +140,7 @@ Each approved issuer record includes:
 - Review frequency (quarterly / semi-annual / annual)
 - Responsible Risk Manager contact
 
-### 4.3 Example Whitelist Entry
+**Example whitelist entry** (YAML format - legacy):
 ```yaml
 issuer_id: LEI-549300ABCDEF1234567890
 legal_name: XYZ Investment Bank AG
@@ -139,6 +199,7 @@ risk_manager: risk-manager@yuanta.co.th
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-16 | copilot | Initial issuer whitelist governance framework: approval workflow, monitoring process, BR-022 integration, audit requirements; placeholder for operational implementation (target: v1.1.0 activation) |
+| 1.0.1 | 2025-10-16 | copilot | Added Whitelist Data Model section (§4.1) with JSON schema structure; created data/issuer_whitelist.json with sample issuers (VONTOBEL, HSBC, JPMORGAN); added note on Phase 2 validator integration; updated related references |
 
 ## 9. Open Questions
 | ID | Question | Owner | Target Resolution |

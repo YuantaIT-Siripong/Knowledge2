@@ -90,6 +90,16 @@ class ParameterValidator:
                 f"Use canonical parameter 'notional' instead. See alias-register.md for migration guidance."
             )
         
+        # Check for potential annual rate supplied instead of per-period rate
+        if 'coupon_rate_pct' in parameters:
+            coupon_rate_pct = parameters['coupon_rate_pct']
+            if isinstance(coupon_rate_pct, (int, float)) and coupon_rate_pct > 0.20:
+                self.warnings.append(
+                    f"{context}: coupon_rate_pct value ({coupon_rate_pct}) > 0.20 suggests potential annual rate. "
+                    f"Ensure per-period conversion per coupon-rate-conversion.md. "
+                    f"For monthly payments, divide annual rate by 12; for quarterly, divide by 4."
+                )
+        
         for param_name in parameters.keys():
             # Check snake_case
             if not re.match(r'^[a-z][a-z0-9_]*$', param_name):
