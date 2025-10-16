@@ -228,3 +228,11 @@ GO
 -- - Settlement lag and share delivery settings align with physical settlement
 -- - Template status lifecycle: Draft → Active → Deprecated → Removed
 -- - Templates do not replace trades; they provide a lineage/reference layer
+
+--
+-- IMPORTANT: Schema Harmonization (v1.0.1)
+-- - After applying this migration, run m0012-fcn-template-harmonization.sql
+--   to align settlement_type values with FCN v1.1 canonical schema
+-- - m0012 updates: 'cash' → 'cash-settlement', 'physical-worst-of' → 'physical-settlement'
+-- - m0012 also changes default recovery_mode to 'capital-at-risk'
+-- ============================================================================
