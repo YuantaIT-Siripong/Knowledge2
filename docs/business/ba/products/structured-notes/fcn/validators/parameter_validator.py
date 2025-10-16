@@ -83,6 +83,13 @@ class ParameterValidator:
         """Validate parameter naming conventions."""
         all_valid = True
         
+        # Check for deprecated alias 'notional_amount'
+        if 'notional_amount' in parameters:
+            self.warnings.append(
+                f"{context}: Parameter 'notional_amount' is a deprecated alias (Stage 1 - Introduce). "
+                f"Use canonical parameter 'notional' instead. See alias-register.md for migration guidance."
+            )
+        
         for param_name in parameters.keys():
             # Check snake_case
             if not re.match(r'^[a-z][a-z0-9_]*$', param_name):

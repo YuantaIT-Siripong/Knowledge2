@@ -52,7 +52,7 @@ Where:
 ### 3.2 Calculate Share Count
 
 ```
-share_count_worst = floor( notional_amount / (initial_level_worst × put_strike_pct) )
+share_count_worst = floor( notional / (initial_level_worst × put_strike_pct) )
 ```
 
 **Rationale**: Investor receives shares based on "strike cost" — the notional divided by the effective strike price (initial level × put strike percentage). Floor function ensures delivery of whole shares only.
@@ -60,7 +60,7 @@ share_count_worst = floor( notional_amount / (initial_level_worst × put_strike_
 ### 3.3 Calculate Residual Cash
 
 ```
-residual_cash = notional_amount - (share_count_worst × initial_level_worst × put_strike_pct)
+residual_cash = notional - (share_count_worst × initial_level_worst × put_strike_pct)
 ```
 
 **Interpretation**: Residual cash represents the fractional share amount that cannot be delivered physically.

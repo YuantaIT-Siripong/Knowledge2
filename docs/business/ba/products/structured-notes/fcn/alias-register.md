@@ -2,7 +2,7 @@
 title: FCN Parameter Alias Register
 doc_type: alias-register
 status: Draft
-version: 1.0.0
+version: 1.0.2
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-16
@@ -34,6 +34,7 @@ Covers all FCN specification versions (v1.0+) and tracks parameter lifecycle sta
 |--------------|-----------------|-------|----------------|----------------|-------|
 | `barrier_monitoring` | `barrier_monitoring_type` | Stage 3 (Deprecated) | v1.0.0 | v2.0.0 | Deprecated in v1.1; use `barrier_monitoring_type` for clarity and consistency with monitoring nomenclature (ADR-004) |
 | `redemption_barrier_pct` | `put_strike_pct` | Reserved (Legacy v1.0) | v1.0.0 | N/A | Reserved for backward compatibility; no payoff effect in v1.1 capital-at-risk mode; superseded by `put_strike_pct` for capital-at-risk settlement (BR-011 legacy mode) |
+| `notional_amount` | `notional` | Stage 1 (Introduce) | v1.0.0 (docs only) | v2.0.0 | Documentation-only alias; never part of schema payload; canonical field 'notional' adopted in v1.1.4 for consistency; parameter validator will emit warning when detected |
 
 ## 4. Governance Process
 
@@ -77,7 +78,24 @@ When alias status changes:
 }
 ```
 
-### 5.2 redemption_barrier_pct (Legacy v1.0)
+### 5.2 notional_amount → notional
+**Status**: INTRODUCED (Stage 1) as of v1.1.4  
+**Action Required**: Use canonical parameter `notional` for all documentation and communication  
+**Backward Compatibility**: `notional_amount` was a documentation-only alias; no schema changes required  
+**Validator Behavior**: Parameter validator will emit warning if `notional_amount` detected in parameters
+
+**Migration Example**:
+```yaml
+# OLD (deprecated documentation alias)
+notional_amount: 1000000
+
+# NEW (canonical)
+notional: 1000000
+```
+
+**Note**: This is a documentation normalization only. The schema has never included `notional_amount` as a field name; this change harmonizes documentation and business rule descriptions with canonical terminology.
+
+### 5.3 redemption_barrier_pct (Legacy v1.0)
 **Status**: Reserved / Legacy (no payoff effect in v1.1+)  
 **Action Required**: For v1.1+ trades, use `put_strike_pct` for capital-at-risk settlement threshold  
 **Backward Compatibility**: Field retained in schema for v1.0 trade data compatibility; no validation error if present  
@@ -118,3 +136,4 @@ When alias status changes:
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-16 | copilot | Initial alias register: documented `barrier_monitoring` deprecation (Stage 3), `redemption_barrier_pct` legacy reservation; established governance workflow per ADR-004 |
 | 1.0.1 | 2025-10-16 | copilot | Noted recovery_mode canonical value addition: 'capital-at-risk' added to enumeration (no alias, pure extension); related to BR-025A physical worst-of settlement mechanics |
+| 1.0.2 | 2025-10-16 | copilot | Added 'notional_amount' → 'notional' alias mapping (Stage 1 - Introduce); documentation-only normalization; parameter validator will emit warning when deprecated alias detected; no schema changes |
