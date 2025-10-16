@@ -2,7 +2,7 @@
 title: FCN v1.1 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.1.5
+version: 1.1.6
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -54,7 +54,7 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 | BR-011 | Settlement | **DEPRECATED (v1.0 Legacy)**: Par recovery pays 100% notional at maturity regardless of KI | Spec §2, §5 / BA | P0 | Deprecated | No |
 | BR-012 | Settlement | Proportional-loss illustrative (non-normative) | Spec §2 examples / BA | P2 | Draft | Non-Normative |
 | BR-013 | Settlement | Final coupon eligibility independent of redemption calc | Spec §5 / BA | P1 | Draft | Yes |
-| BR-014 | Validation | Observation dates strictly increasing & each < maturity_date | Spec §3 / BA | P0 | Draft | Yes |
+| BR-014 | Validation | Observation dates strictly increasing & each < maturity_date; observation schedule must include maturity observation (final observation aligns with maturity_date); observation count must be consistent with tenor | Spec §3 / BA | P0 | Draft | Yes |
 | BR-015 | Validation | `underlying_symbols` length = `initial_levels` length | Spec §3 / BA | P0 | Draft | Yes |
 | BR-016 | Data Integrity | Basket weights (if provided) sum to 1.0 else equal-weight inferred | Domain Handoff §7, ER §6 / SA | P1 | Draft | Yes |
 | BR-017 | Governance | Normative test vector coverage gating Proposed → Active | ADR-003 / SA | P0 | Draft | Yes |
@@ -76,6 +76,8 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 - BR-025A defines physical settlement share delivery mechanics for capital-at-risk mode with strike-cost calculation.
 - BR-025B ensures deterministic tie-breaking when multiple underlyings have identical worst_of_final_ratio (first occurrence in underlying_assets array wins).
 - Continuous monitoring reserved (non-normative) until future version (target v1.2+).
+- BR-014 clarified in v1.1.6: Observation schedule must include maturity observation date (final observation aligns with maturity_date) and maintain consistent count with tenor. See Activation Readiness enhancements.
+- Test vector coverage for physical settlement: BR-025A validated by `fcn-v1.1-caprisk-nomem-ki-loss-physical.md`; BR-025B validated by `fcn-v1.1-caprisk-nomem-ki-loss-physical-tiebreak.md`.
 
 ## 4. Rule Categories
 - **Validation**: BR-001–004, 014, 015, 019, 020, 024, 026
@@ -100,6 +102,7 @@ The following derived outputs are calculated by BR-025A (Physical Worst-of Settl
 |---------------|---------|---------------------|-------------------|-------|
 | `share_count_worst` | `floor(notional / (initial_level_worst × put_strike_pct))` | `notional`, `initial_levels`, `put_strike_pct` | TBD (settlement_instruction) | Whole shares delivered to investor |
 | `residual_cash` | `notional - share_count_worst × initial_level_worst × put_strike_pct` | `notional`, `initial_levels`, `put_strike_pct`, `share_count_worst` (derived) | TBD (settlement_instruction) | Fractional share value; paid separately if ≥ `minimum_cash_dust_threshold` |
+| `worst_performer_selected_symbol` | First occurrence in `underlying_symbols` array when tie exists | `underlying_symbols`, `initial_levels`, final levels (runtime) | TBD (settlement_instruction) | Derived output (non-persisted); deterministic tie-break per BR-025B |
 
 **Related Schema Fields**:
 - `settlement_type`: Determines if physical delivery applies (value: `'physical-settlement'`)
@@ -136,6 +139,7 @@ Canonical parameter: `notional`; capital-at-risk threshold: `put_strike_pct`.
 | 1.1.3 | 2025-10-16 | copilot | Added BR-025A (physical worst-of settlement mechanics with share_count_worst formula); updated BR-021 to explicitly state equality triggers (≥); added capital-at-risk to recovery_mode enum; updated rule categories to include Settlement & Capital-at-Risk |
 | 1.1.4 | 2025-10-16 | copilot | Hygiene: normalized 'notional' naming (replaced 'notional_amount' with canonical 'notional'), added BR-025A derived fields mapping subsection (share_count_worst, residual_cash traceability), updated Naming Note with deprecation notice, alias register cross-reference (no logic changes) |
 | 1.1.5 | 2025-10-16 | copilot | Added BR-025B (Worst-of Tie-Break Policy): deterministic ordering for tie-breaking when multiple underlyings share identical worst_of_final_ratio (first in underlying_assets array); updated rule categories; added references to coupon-rate-conversion.md and issuer_whitelist.json; supports settlement-physical-worst-of.md OQ-PHYS-001 resolution |
+| 1.1.6 | 2025-10-16 | copilot | Activation Readiness: clarified BR-014 description to explicitly require maturity observation inclusion and consistent tenor count; added worst_performer_selected_symbol to derived fields mapping (BR-025B); added traceability notes referencing test vectors fcn-v1.1-caprisk-nomem-ki-loss-physical.md (BR-025A) and fcn-v1.1-caprisk-nomem-ki-loss-physical-tiebreak.md (BR-025B); no new rule IDs |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
