@@ -2,7 +2,7 @@
 title: FCN v1.1 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.1.1
+version: 1.1.2
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -107,6 +107,15 @@ Canonical parameter: `notional_amount`; capital-at-risk threshold: `put_strike_p
 | 1.0.3 | 2025-10-10 | copilot | Hygiene & canonical naming |
 | 1.1.0 | 2025-10-16 | copilot | Added BR-020–BR-023 (autocall, issuer, precedence) |
 | 1.1.1 | 2025-10-16 | copilot | Added BR-024–BR-026 (capital-at-risk, monitoring); deprecated BR-011; front matter alignment fix |
+| 1.1.2 | 2025-10-16 | copilot | Documentation adjustments: updated schema description, deprecated barrier_monitoring field, integrated activation checklist reference, added alias register reference; no rule logic changes |
 
 ## 11. References
-(Reference list unchanged.)
+- [FCN v1.0 Specification](specs/fcn-v1.0.md)
+- [FCN v1.1.0 Specification](specs/fcn-v1.1.0.md)
+- [FCN v1.1.0 Activation Checklist](specs/_activation-checklist-v1.1.0.md)
+- [Alias Register](alias-register.md)
+- [Entity-Relationship Model](er-fcn-v1.0.md)
+- [Product Manifest](manifest.yaml)
+- [ADR-003 Version Activation](../../sa/design-decisions/adr-003-fcn-version-activation.md)
+- [ADR-004 Parameter Alias Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
+- [DEC-011 Notional Precision](../../sa/design-decisions/dec-011-notional-precision.md)

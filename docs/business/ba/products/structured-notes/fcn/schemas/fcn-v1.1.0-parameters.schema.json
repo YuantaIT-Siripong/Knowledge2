@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://yuanta.co.th/schemas/structured-notes/fcn/v1.1/parameters",
   "title": "FCN v1.1.0 Parameter Schema",
-  "description": "JSON Schema for Fixed Coupon Note (FCN) v1.1.0 parameters conformance validation. Extends v1.0 with autocall (knock-out) barrier and issuer support.",
+  "description": "JSON Schema for Fixed Coupon Note (FCN) v1.1.0 parameters conformance validation. Extends v1.0 with autocall (knock-out) barrier, issuer support, capital-at-risk settlement (put_strike_pct), and barrier_monitoring_type. Legacy fields redemption_barrier_pct (reserved, no payoff effect) and barrier_monitoring (deprecated alias of barrier_monitoring_type) retained for backward compatibility.",
   "type": "object",
   "required": [
     "product_code",
@@ -178,7 +178,7 @@
       "type": "string",
       "enum": ["discrete", "continuous"],
       "default": "discrete",
-      "description": "Barrier monitoring style: discrete (observation dates only) or continuous (intraday monitoring); only discrete supported in v1.1"
+      "description": "DEPRECATED alias of barrier_monitoring_type. Use barrier_monitoring_type instead. Barrier monitoring style: discrete (observation dates only) or continuous (intraday monitoring); only discrete supported in v1.1"
     },
     "knock_in_condition": {
       "type": "string",

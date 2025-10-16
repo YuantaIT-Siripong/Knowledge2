@@ -186,6 +186,7 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview & KPI baselines established |
 | 1.1.0 | 2025-10-16 | copilot | Updated to v1.1.0: added capital-at-risk settlement overview, migration guidance, KPI impact analysis, deprecated v1.0.0 status; extended KPI definitions to include BR-024–026 |
+| 1.1.0 | 2025-10-16 | copilot | Added activation checklist reference link in References section for v1.1.0 promotion readiness tracking |
 
 # 12. References
 
@@ -196,4 +197,5 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 - [ADR-003 Version Activation & Promotion](../../sa/design-decisions/adr-003-fcn-version-activation.md)
 - [ADR-004 Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
 - [DEC-011 Notional Precision Policy](../../sa/design-decisions/dec-011-notional-precision.md)
+- [FCN v1.1.0 Activation Checklist](specs/_activation-checklist-v1.1.0.md)
 - KPI Scripts (parameter_validator.py, coverage_validator.py, precision audit utilities)
