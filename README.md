@@ -56,4 +56,21 @@ See `docs/_policies/document-control-policy.md` for governance, and `docs/playbo
 Machine‑readable index lives in `docs/_meta/index.yml`.
 
 ## Classification
-See `docs/_policies/document-control-policy.md` and `docs/_policies/tagging-schema.md`.  
+See `docs/_policies/document-control-policy.md` and `docs/_policies/tagging-schema.md`.
+
+## FCN Product Database Schema
+
+**Status**: Well-designed with operational parameter management
+
+For the current status of FCN (Fixed Coupon Note) v1.0 database schema design:
+- 📊 **[Executive Summary](FCN_DATABASE_SCHEMA_STATUS.md)** - Quick overview and key metrics
+- 📋 **[Detailed Status Report](docs/business/ba/products/structured-notes/fcn/STATUS_REPORT.md)** - Comprehensive analysis
+- 📈 **[Visual Summary](docs/business/ba/products/structured-notes/fcn/SCHEMA_VISUAL_SUMMARY.md)** - Diagrams and quick reference
+
+**Quick Stats**:
+- ✅ 24 parameters defined and validated (100% tests passing)
+- ✅ 7 validators operational with CI/CD integration
+- 📋 12 entities documented (1 implemented, 11 pending)
+- 🎯 Next: Implement product catalog and trade management tables
+
+See [db/README.md](db/README.md) for database setup and usage.
