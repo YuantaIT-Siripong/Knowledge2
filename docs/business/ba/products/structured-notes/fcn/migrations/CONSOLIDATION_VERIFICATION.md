@@ -9,7 +9,7 @@
 
 ### Schema Objects Created
 
-#### Tables (11 total)
+#### Tables (10 total)
 
 1. ✅ `issuer_whitelist` - Approved issuer whitelist for counterparty risk (BR-022)
 2. ✅ `fcn_template` - Template layer core metadata and product parameters
@@ -211,7 +211,7 @@ Existing files preserved:
 
 ## Acceptance Criteria Status
 
-✅ New file fcn_schema_consolidated_v1_1.sql present with full consolidated schema
+✅ New file fcn_schema_consolidated_v1_1.sql present with full consolidated schema (10 tables, 1 procedure, 1 trigger)
 ✅ Folder archive/ created containing four legacy migration files
 ✅ OBSOLETE headers added to archived files with original content preserved
 ✅ Original m0001–m0004 removed from root migrations folder
