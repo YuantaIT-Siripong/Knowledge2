@@ -2,7 +2,7 @@
 title: FCN v1.1 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.1.3
+version: 1.1.4
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -47,7 +47,7 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 | BR-006 | Coupon Logic | Coupon condition: ALL closes ≥ `initial × coupon_condition_threshold_pct` | Spec §5 / BA | P0 | Draft | Yes |
 | BR-007 | Observation | Each observation date processed exactly once (idempotent) | Domain Handoff §7 / SA | P0 | Draft | Yes |
 | BR-008 | Coupon Logic | Memory accumulation capped by `memory_carry_cap_count` | Spec §3 & §5 / BA | P0 | Draft | Yes |
-| BR-009 | Coupon Calc | `coupon_amount = notional_amount × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
+| BR-009 | Coupon Calc | `coupon_amount = notional × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
 | BR-010 | Coupon Timing | Payment date aligned by observation index → `coupon_payment_dates[i]` | Spec §3 / BA | P0 | Draft | Yes |
 | BR-011 | Settlement | **DEPRECATED (v1.0 Legacy)**: Par recovery pays 100% notional at maturity regardless of KI | Spec §2, §5 / BA | P0 | Deprecated | No |
 | BR-012 | Settlement | Proportional-loss illustrative (non-normative) | Spec §2 examples / BA | P2 | Draft | Non-Normative |
@@ -57,7 +57,7 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 | BR-016 | Data Integrity | Basket weights (if provided) sum to 1.0 else equal-weight inferred | Domain Handoff §7, ER §6 / SA | P1 | Draft | Yes |
 | BR-017 | Governance | Normative test vector coverage gating Proposed → Active | ADR-003 / SA | P0 | Draft | Yes |
 | BR-018 | Governance | Structural schema change requires new product version (alias policy) | ADR-004 / SA | P1 | Draft | Yes |
-| BR-019 | Validation (Precision) | `notional_amount` precision policy (currency scale) | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
+| BR-019 | Validation (Precision) | `notional` precision policy (currency scale) | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
 | BR-020 | Validation | `0 < knock_out_barrier_pct <= 1.30` when present | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
 | BR-021 | Autocall Logic | Autocall triggers when ALL underlyings close ≥ `initial × knock_out_barrier_pct` (equality triggers) → early redemption (principal + due coupon) | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
 | BR-022 | Governance (Issuer) | `issuer` must exist in approved issuer whitelist | Spec v1.1.0 §3 / BA | P1 | Draft | Yes |
@@ -88,6 +88,23 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 ## 6. Rule–Schema–Data Mapping
 (Refer to mapping table in existing body; unchanged except added rows for put_strike_pct, barrier_monitoring_type.)
 
+### 6.1 BR-025A Derived Fields Mapping
+
+The following derived outputs are calculated by BR-025A (Physical Worst-of Settlement):
+
+| Derived Field | Formula | Source Schema Fields | Data Model Fields | Notes |
+|---------------|---------|---------------------|-------------------|-------|
+| `share_count_worst` | `floor(notional / (initial_level_worst × put_strike_pct))` | `notional`, `initial_levels`, `put_strike_pct` | TBD (settlement_instruction) | Whole shares delivered to investor |
+| `residual_cash` | `notional - share_count_worst × initial_level_worst × put_strike_pct` | `notional`, `initial_levels`, `put_strike_pct`, `share_count_worst` (derived) | TBD (settlement_instruction) | Fractional share value; paid separately if ≥ `minimum_cash_dust_threshold` |
+
+**Related Schema Fields**:
+- `settlement_type`: Determines if physical delivery applies (value: `'physical-settlement'`)
+- `recovery_mode`: Must be `'capital-at-risk'` for BR-025A to apply
+- `knock_in_barrier_pct`: Trigger condition for capital-at-risk logic
+- `barrier_monitoring_type`: Observation methodology (normative: `'discrete'`)
+
+**Traceability**: See [settlement-physical-worst-of.md](settlement-physical-worst-of.md) for detailed operational guidance and examples.
+
 ## 7. Traceability Matrix
 (Updated: BR-024–026 entries included; BR-011 marked legacy.)
 
@@ -98,7 +115,9 @@ Phases unchanged. Phase 4 will implement BR-025 & precedence tests once logic va
 (OQ list unchanged; add OQ-BR-005, OQ-BR-006, OQ-BR-007 as previously documented.)
 
 ## Naming Note
-Canonical parameter: `notional_amount`; capital-at-risk threshold: `put_strike_pct`.
+Canonical parameter: `notional`; capital-at-risk threshold: `put_strike_pct`.
+
+**Deprecation Notice**: The alias `notional_amount` is deprecated (Stage 1 - Introduce) as of v1.1.4. Use the canonical parameter `notional` for all new implementations. See [alias-register.md](alias-register.md) for migration guidance and timeline.
 
 ## 10. Change Log
 | Version | Date | Author | Change |
@@ -111,6 +130,7 @@ Canonical parameter: `notional_amount`; capital-at-risk threshold: `put_strike_p
 | 1.1.1 | 2025-10-16 | copilot | Added BR-024–BR-026 (capital-at-risk, monitoring); deprecated BR-011; front matter alignment fix |
 | 1.1.2 | 2025-10-16 | copilot | Documentation adjustments: updated schema description, deprecated barrier_monitoring field, integrated activation checklist reference, added alias register reference; no rule logic changes |
 | 1.1.3 | 2025-10-16 | copilot | Added BR-025A (physical worst-of settlement mechanics with share_count_worst formula); updated BR-021 to explicitly state equality triggers (≥); added capital-at-risk to recovery_mode enum; updated rule categories to include Settlement & Capital-at-Risk |
+| 1.1.4 | 2025-10-16 | copilot | Hygiene: normalized 'notional' naming (replaced 'notional_amount' with canonical 'notional'), added BR-025A derived fields mapping subsection (share_count_worst, residual_cash traceability), updated Naming Note with deprecation notice, alias register cross-reference (no logic changes) |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
