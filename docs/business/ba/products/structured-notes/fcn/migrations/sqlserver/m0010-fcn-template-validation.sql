@@ -12,12 +12,16 @@
 -- 1. Stored procedure usp_FCN_ValidateTemplate enforcing business rules
 -- 2. Trigger on fcn_template to call validation on INSERT/UPDATE
 --
+-- ============================================================================
 -- VALIDATION RULES:
 -- - Step-down knock-out barriers must be non-increasing (monotonic)
 -- - Only one observation can be marked as maturity
 -- - Observation schedule must have at least one maturity observation
 -- - Underlying weights must sum to 1.0 (100%)
 -- - Step-down enabled flag must match presence of step-down barriers
+-- - recovery_mode='capital-at-risk' requires put_strike_pct IS NOT NULL (v1.0.1)
+-- - share_delivery_enabled=1 requires settlement_type='physical-settlement' 
+--   AND put_strike_pct IS NOT NULL (v1.0.1)
 -- ============================================================================
 
 -- ============================================================================
@@ -167,6 +171,50 @@ BEGIN
     END
     
     -- ========================================================================
+    -- RULE 5: recovery_mode='capital-at-risk' requires put_strike_pct IS NOT NULL
+    -- ========================================================================
+    DECLARE @recovery_mode NVARCHAR(50);
+    DECLARE @put_strike_pct DECIMAL(9, 6);
+    
+    SELECT @recovery_mode = recovery_mode, @put_strike_pct = put_strike_pct
+    FROM fcn_template
+    WHERE template_id = @template_id;
+    
+    IF @recovery_mode = 'capital-at-risk' AND @put_strike_pct IS NULL
+    BEGIN
+        SET @ErrorMessage = 'recovery_mode=''capital-at-risk'' requires put_strike_pct to be NOT NULL for template: ' + CAST(@template_id AS NVARCHAR(36));
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN;
+    END
+    
+    -- ========================================================================
+    -- RULE 6: share_delivery_enabled=1 requires settlement_type='physical-settlement' AND put_strike_pct IS NOT NULL
+    -- ========================================================================
+    DECLARE @share_delivery_enabled BIT;
+    DECLARE @settlement_type NVARCHAR(50);
+    
+    SELECT @share_delivery_enabled = share_delivery_enabled, @settlement_type = settlement_type
+    FROM fcn_template
+    WHERE template_id = @template_id;
+    
+    IF @share_delivery_enabled = 1
+    BEGIN
+        IF @settlement_type != 'physical-settlement'
+        BEGIN
+            SET @ErrorMessage = 'share_delivery_enabled=1 requires settlement_type=''physical-settlement'' for template: ' + CAST(@template_id AS NVARCHAR(36));
+            RAISERROR(@ErrorMessage, 16, 1);
+            RETURN;
+        END
+        
+        IF @put_strike_pct IS NULL
+        BEGIN
+            SET @ErrorMessage = 'share_delivery_enabled=1 requires put_strike_pct to be NOT NULL for template: ' + CAST(@template_id AS NVARCHAR(36));
+            RAISERROR(@ErrorMessage, 16, 1);
+            RETURN;
+        END
+    END
+    
+    -- ========================================================================
     -- VALIDATION PASSED
     -- ========================================================================
     PRINT 'Template validation passed for: ' + CAST(@template_id AS NVARCHAR(36));
@@ -262,6 +310,12 @@ GO
 --
 -- Test Case 4: Valid template with step-down enabled and proper barriers
 -- Expected: Validation passes
+--
+-- Test Case 5: recovery_mode='capital-at-risk' with put_strike_pct=NULL (v1.0.1)
+-- Expected: Validation fails
+--
+-- Test Case 6: share_delivery_enabled=1 with settlement_type='cash-settlement' (v1.0.1)
+-- Expected: Validation fails
 
 -- ============================================================================
 -- NOTES
@@ -272,3 +326,5 @@ GO
 -- - Trigger uses cursor to handle multiple rows in batch operations
 -- - Consider adding a manual validation function for pre-activation checks
 -- - Migration is idempotent (DROP/CREATE pattern used)
+-- - Version 1.0.1: Added RULE 5 and RULE 6 for capital-at-risk and share delivery validation
+--   (aligned with m0012-fcn-template-harmonization.sql)

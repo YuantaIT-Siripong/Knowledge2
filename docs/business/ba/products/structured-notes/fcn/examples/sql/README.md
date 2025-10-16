@@ -2,7 +2,7 @@
 title: FCN SQL Examples
 doc_type: reference
 status: Draft
-version: 1.0.0
+version: 1.0.1
 owner: siripong.s@yuanta.co.th
 created: 2025-10-16
 last_reviewed: 2025-10-16
@@ -14,9 +14,17 @@ related:
   - ../../migrations/sqlserver/m0009-fcn-template-schema.sql
   - ../../migrations/sqlserver/m0010-fcn-template-validation.sql
   - ../../migrations/sqlserver/m0011-fcn-trade-link-template.sql
+  - ../../migrations/sqlserver/m0012-fcn-template-harmonization.sql
 ---
 
 # FCN SQL Examples
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0.1 | 2025-10-16 | Harmonization: Updated settlement_type values to align with FCN v1.1 canonical schema ('cash-settlement', 'physical-settlement'); changed default recovery_mode to 'capital-at-risk'; added migration m0012 |
+| 1.0.0 | 2025-10-16 | Initial version: Template schema and validation procedures |
 
 ## 1. Purpose
 
@@ -28,7 +36,27 @@ This directory contains SQL Server example scripts demonstrating FCN (Fixed Coup
 - Provide reference scenarios covering key FCN payoff patterns (physical loss, KI no loss, baseline, tie-break, autocall equality)
 - Serve as executable documentation for DEV/SANDBOX environments
 
-## 2. Directory Structure
+## 2. Harmonization Note (Version 1.0.1)
+
+**Important Schema Update**: As of version 1.0.1, the FCN template schema has been harmonized with the trade-level canonical FCN v1.1 schema to eliminate parameter naming divergence:
+
+### Settlement Type Values
+- **Old values** (deprecated): `'cash'`, `'physical-worst-of'`
+- **New canonical values**: `'cash-settlement'`, `'physical-settlement'`
+- **Migration**: m0012-fcn-template-harmonization.sql automatically updates existing data
+
+### Recovery Mode Default
+- **Old default**: `'par-recovery'`
+- **New default**: `'capital-at-risk'`
+- **Rationale**: Aligns with FCN v1.1 normative behavior (BR-025, BR-025A)
+
+### Enhanced Validation
+- `recovery_mode='capital-at-risk'` now requires `put_strike_pct IS NOT NULL`
+- `share_delivery_enabled=1` requires `settlement_type='physical-settlement'` AND `put_strike_pct IS NOT NULL`
+
+**Action Required**: If you have existing templates created before v1.0.1, apply migration m0012 to ensure consistency. All examples in this directory use the new canonical values.
+
+## 3. Directory Structure
 
 ```
 examples/sql/
@@ -43,7 +71,7 @@ examples/sql/
 
 **Note**: The scenario script files referenced above are placeholders for future development. This README establishes the structure and usage patterns.
 
-## 3. Template vs Trade Flow
+## 4. Template vs Trade Flow
 
 ### Template Layer (Product Shelf)
 
@@ -77,13 +105,13 @@ Template (1) ----< Trade (N)
 6. Create trade instances referencing template_id
 7. Populate trade-specific data (notional, fixings, counterparty)
 
-## 4. Scenario Scripts Summary
+## 5. Scenario Scripts Summary
 
 The following table outlines the planned scenario scripts. Each script demonstrates a specific FCN payoff behavior and edge case.
 
 | Script Name                        | Scenario Description                                                                 | Key Features                                                                 | Business Rules Tested          |
 |------------------------------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------|--------------------------------|
-| `fcn-example-physical-loss.sql`    | Physical worst-of settlement with capital loss at maturity                           | `settlement_type='physical-worst-of'`, `recovery_mode='capital-at-risk'`     | BR-025A, BR-003, BR-005        |
+| `fcn-example-physical-loss.sql`    | Physical worst-of settlement with capital loss at maturity                           | `settlement_type='physical-settlement'`, `recovery_mode='capital-at-risk'`   | BR-025A, BR-003, BR-005        |
 | `fcn-example-ki-no-loss.sql`       | Knock-in triggered but final level above put strike (par recovery)                  | `recovery_mode='par-recovery'`, KI barrier breached, final > put strike      | BR-005, BR-010, BR-003         |
 | `fcn-example-baseline.sql`         | Standard FCN without autocall or knock-in (all coupons paid, par redemption)        | No `knock_out_barrier_pct`, all observations above thresholds                | BR-006, BR-007, BR-001         |
 | `fcn-example-tie-break.sql`        | Multiple underlyings at identical levels (worst-of selection when tied)             | Two underlyings at exact same performance                                    | BR-005, BR-006, tie-break logic|
@@ -91,7 +119,7 @@ The following table outlines the planned scenario scripts. Each script demonstra
 
 **Status**: Scripts are currently placeholders. Implementation will follow this README once approved.
 
-## 5. Execution Workflow (DEV/SANDBOX)
+## 6. Execution Workflow (DEV/SANDBOX)
 
 ### Prerequisites
 
@@ -111,6 +139,8 @@ GO
 :r migrations/sqlserver/m0010-fcn-template-validation.sql
 GO
 :r migrations/sqlserver/m0011-fcn-trade-link-template.sql
+GO
+:r migrations/sqlserver/m0012-fcn-template-harmonization.sql
 GO
 
 -- Step 2: Verify tables created
@@ -152,9 +182,13 @@ SELECT
 FROM fcn_template_observation_schedule obs
 INNER JOIN fcn_template tpl ON obs.template_id = tpl.template_id
 ORDER BY tpl.template_code, obs.observation_offset_months;
+
+-- Verify canonical settlement_type values (post-m0012)
+SELECT DISTINCT settlement_type FROM fcn_template ORDER BY settlement_type;
+-- Expected result: 'cash-settlement', 'physical-settlement'
 ```
 
-## 6. Safety & Idempotency
+## 7. Safety & Idempotency
 
 ### Idempotency Caution
 
@@ -206,7 +240,7 @@ ORDER BY tpl.template_code, obs.observation_offset_months;
 | Production Use      | Applied to all environments       | DEV/SANDBOX only                     |
 | Rollback Strategy   | Manual (DROP tables if needed)    | Transaction ROLLBACK or manual DELETE|
 
-## 7. Future Extensions
+## 8. Future Extensions
 
 ### Planned Enhancements
 
@@ -242,10 +276,10 @@ To add new scenario scripts:
 2. Include header comment block (purpose, scenario, expected outcome)
 3. Use consistent template code prefix: `FCN-EXAMPLE-`
 4. Document business rules tested
-5. Add entry to scenario summary table (Section 4)
+5. Add entry to scenario summary table (Section 5)
 6. Include verification queries at end of script
 
-## 8. References
+## 9. References
 
 ### Related Documentation
 
@@ -258,6 +292,7 @@ To add new scenario scripts:
   - [m0009-fcn-template-schema.sql](../../migrations/sqlserver/m0009-fcn-template-schema.sql) - Template schema definition
   - [m0010-fcn-template-validation.sql](../../migrations/sqlserver/m0010-fcn-template-validation.sql) - Validation logic
   - [m0011-fcn-trade-link-template.sql](../../migrations/sqlserver/m0011-fcn-trade-link-template.sql) - Template-trade linkage
+  - [m0012-fcn-template-harmonization.sql](../../migrations/sqlserver/m0012-fcn-template-harmonization.sql) - Parameter naming harmonization (v1.0.1)
 
 ### External References
 
@@ -265,7 +300,7 @@ To add new scenario scripts:
 - **Structured Notes Standards**: ISDA, FICN industry conventions
 - **Yuanta Internal**: Product governance policies, risk management guidelines
 
-## 9. Support and Feedback
+## 10. Support and Feedback
 
 For questions, issues, or enhancement requests:
 - **Owner**: siripong.s@yuanta.co.th
@@ -274,6 +309,6 @@ For questions, issues, or enhancement requests:
 
 ---
 
-**Document Version**: 1.0.0  
+**Document Version**: 1.0.1  
 **Last Updated**: 2025-10-16  
 **Next Review**: 2026-04-16
