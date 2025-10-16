@@ -159,6 +159,12 @@ migrations:
     applied: false
     depends_on: [m0001, m0002]
 
+  - migration_id: m0004
+    file: migrations/m0004-fcn-v1_1-capital-at-risk-recovery-mode.sql
+    description: Add recovery_mode=capital-at-risk enumeration
+    applied: false
+    depends_on: [m0001, m0002, m0003]
+
 validators:
   - validator_id: phase-0-metadata
     script: validators/metadata_validator.py

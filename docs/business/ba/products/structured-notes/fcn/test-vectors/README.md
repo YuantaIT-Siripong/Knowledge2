@@ -37,12 +37,12 @@ This directory contains normative test vectors for Fixed Coupon Note (FCN) produ
 **Settlement Mode**: Capital-at-risk (BR-025)  
 **Key Feature**: Conditional loss if KI triggered AND worst_of_final_ratio < put_strike_pct
 
-## Capital-at-Risk Settlement Logic (BR-025)
+## Capital-at-Risk Settlement Logic (BR-025 & BR-025A)
 
 ### Overview
-Capital-at-risk settlement replaces unconditional par recovery (deprecated BR-011) with conditional principal loss exposure.
+Capital-at-risk settlement replaces unconditional par recovery (deprecated BR-011) with conditional principal loss exposure. BR-025A extends this with physical worst-of settlement mechanics for share delivery.
 
-### Formula
+### Formula (Cash Settlement)
 At maturity:
 
 1. **If KI NOT triggered**:
@@ -86,18 +86,40 @@ Given:
 
 **Loss Percentage**: (put_strike_pct - worst_of_final_ratio) / put_strike_pct = 10.75%
 
+### Physical Settlement Mechanics (BR-025A)
+
+For `settlement_type=physical-settlement` AND `recovery_mode=capital-at-risk` AND loss condition triggered:
+
+**Share Count Calculation**:
+```
+share_count_worst = floor( notional_amount / (initial_level_worst × put_strike_pct) )
+```
+
+**Residual Cash**:
+```
+residual_cash = notional_amount - (share_count_worst × initial_level_worst × put_strike_pct)
+```
+
+**Treatment**:
+- Deliver `share_count_worst` shares of worst-performing underlying
+- Pay `residual_cash` separately if ≥ minimum_cash_dust_threshold
+- Otherwise, add residual to final coupon or principal payment
+
+See [Physical Worst-of Settlement Guideline](../settlement-physical-worst-of.md) for detailed mechanics.
+
 ### Key Observations
 - Loss is **conditional**: requires both KI trigger AND poor recovery
 - Put strike (80%) provides cushion above KI barrier (60%)
 - Worst performer drives loss calculation (basket "floor")
 - Loss is proportional, not binary (can be anywhere from 0% to 100% depending on worst_of_final_ratio)
+- Physical settlement delivers shares based on strike cost (BR-025A)
 
 ## Payoff Precedence (BR-023)
 
 When multiple features present, evaluation order:
 
 1. **Autocall (Knock-Out)** — Highest priority (BR-021)
-   - If all underlyings ≥ initial × knock_out_barrier_pct, early redemption
+   - If all underlyings ≥ initial × knock_out_barrier_pct (equality triggers), early redemption
    - Ceases further observations; preempts maturity settlement
 
 2. **Coupon Eligibility** (BR-006)

@@ -117,3 +117,4 @@ When alias status changes:
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-16 | copilot | Initial alias register: documented `barrier_monitoring` deprecation (Stage 3), `redemption_barrier_pct` legacy reservation; established governance workflow per ADR-004 |
+| 1.0.1 | 2025-10-16 | copilot | Noted recovery_mode canonical value addition: 'capital-at-risk' added to enumeration (no alias, pure extension); related to BR-025A physical worst-of settlement mechanics |

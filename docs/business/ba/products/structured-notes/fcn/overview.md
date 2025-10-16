@@ -57,11 +57,15 @@ Fixed Coupon Note (FCN) v1.1.0 defines a structured note paying periodic fixed c
 - `put_strike_pct` is **required**; typical values: 0.70–1.0 (must be > knock_in_barrier_pct per BR-024)
 - `barrier_monitoring_type` defaults to 'discrete' if not specified
 - `issuer` is **required** (BR-022)
+- `recovery_mode` now supports explicit 'capital-at-risk' value (in addition to 'par-recovery', 'proportional-loss')
+- When using `recovery_mode=capital-at-risk` with `settlement_type=physical-settlement`, physical worst-of settlement mechanics apply per BR-025A (share delivery based on strike cost)
 - Settlement at maturity follows capital-at-risk logic (BR-025), NOT unconditional par recovery
+- Autocall (knock-out) triggers on equality: ALL underlyings ≥ initial × knock_out_barrier_pct per BR-021
 
 **Migration Scripts**:
 - **m0002**: Adds autocall and issuer parameters
 - **m0003**: Adds put_strike_pct, barrier_monitoring_type with backfill guards (idempotent)
+- **m0004**: Adds recovery_mode='capital-at-risk' enumeration support
 
 # 2. Objectives
 
@@ -187,6 +191,7 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview & KPI baselines established |
 | 1.1.0 | 2025-10-16 | copilot | Updated to v1.1.0: added capital-at-risk settlement overview, migration guidance, KPI impact analysis, deprecated v1.0.0 status; extended KPI definitions to include BR-024–026 |
 | 1.1.0 | 2025-10-16 | copilot | Added activation checklist reference link in References section for v1.1.0 promotion readiness tracking |
+| 1.1.0 | 2025-10-16 | copilot | Documentation clarification: added explicit recovery_mode=capital-at-risk support, autocall equality semantics (≥), and physical worst-of settlement mechanics (BR-025A) to migration guidance |
 
 # 12. References
 
