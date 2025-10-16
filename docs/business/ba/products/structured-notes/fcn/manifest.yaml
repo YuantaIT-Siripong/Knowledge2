@@ -3,18 +3,19 @@ product_code: FCN
 product_name: Fixed Coupon Note
 product_family: structured-notes
 status: Proposed
-current_version: 1.0.0
+current_version: 1.1.0
 owner: siripong.s@yuanta.co.th
 created: 2025-10-09
-last_updated: 2025-10-10
+last_updated: 2025-10-16
 
 description: |
   Fixed Coupon Note (FCN) with down-and-in barrier protection and conditional coupon payments.
-  Baseline v1.0 covers memory/no-memory variants, physical settlement, and par-recovery/proportional-loss modes.
+  Version 1.1.0 adds capital-at-risk settlement with put strike, autocall (knock-out), and issuer governance.
+  Baseline v1.0 (Deprecated) covered memory/no-memory variants with unconditional par recovery.
 
 versions:
   - version: 1.0.0
-    status: Proposed
+    status: Deprecated
     spec_file: specs/fcn-v1.0.md
     parameter_schema: schemas/fcn-v1.0-parameters.schema.json
     activation_checklist: specs/_activation-checklist-template.md
@@ -26,7 +27,7 @@ versions:
       - Implementation parity confirmed
       - No unresolved naming conflicts
     release_date: null
-    deprecated_date: null
+    deprecated_date: 2025-10-16
 
   - version: 1.1.0
     status: Proposed
@@ -37,10 +38,12 @@ versions:
       - All v1.0 promotion requirements met
       - Autocall (knock-out) test vectors validated
       - Issuer whitelist governance process defined and operational
-      - BR-020 through BR-023 implemented and tested
-      - Payoff precedence order (KO → Coupon → KI) validated
+      - BR-020 through BR-026 implemented and tested
+      - Capital-at-risk settlement logic (put_strike_pct) validated
+      - Payoff precedence order (KO → Coupon → KI → Capital-at-Risk Settlement) validated
+      - Barrier monitoring type (discrete/continuous) governance established
       - Backward compatibility with v1.0 confirmed
-      - Migration script m0002 tested and validated
+      - Migration scripts m0002 and m0003 tested and validated
     release_date: null
     deprecated_date: null
 
@@ -92,6 +95,46 @@ branches:
       - fcn-v1.1.0-nomem-autocall-trigger
       - fcn-v1.1.0-nomem-autocall-no-trigger-edge
 
+  - branch_id: fcn-caprisk-nomem
+    description: No-memory coupon, capital-at-risk settlement, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: no-memory
+      step_feature: no-step
+      recovery_mode: capital-at-risk
+    normative_vectors:
+      - fcn-v1.1-caprisk-nomem-baseline
+      - fcn-v1.1-caprisk-nomem-ki-no-loss
+      - fcn-v1.1-caprisk-nomem-ki-loss
+
+  - branch_id: fcn-caprisk-mem
+    description: Memory coupon, capital-at-risk settlement, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: memory
+      step_feature: no-step
+      recovery_mode: capital-at-risk
+    normative_vectors:
+      - fcn-v1.1-caprisk-mem-baseline
+      - fcn-v1.1-caprisk-mem-accrual-release
+      - fcn-v1.1-caprisk-mem-ki-loss
+
+  - branch_id: fcn-caprisk-nomem-autocall
+    description: No-memory coupon, capital-at-risk settlement, autocall enabled, physical settlement
+    taxonomy:
+      barrier_type: down-in
+      settlement: physical-settlement
+      coupon_memory: no-memory
+      step_feature: autocall
+      recovery_mode: capital-at-risk
+    normative_vectors:
+      - fcn-v1.1-caprisk-nomem-autocall-preempt
+      - fcn-v1.1-autocall-trigger
+      - fcn-v1.1-autocall-near-miss
+      - fcn-v1.1-autocall-late-trigger
+
 schemas:
   parameters_v1_0: schemas/fcn-v1.0-parameters.schema.json
   parameters_v1_1: schemas/fcn-v1.1.0-parameters.schema.json
@@ -110,6 +153,12 @@ migrations:
     applied: false
     depends_on: [m0001]
 
+  - migration_id: m0003
+    file: migrations/m0003-fcn-v1_1-put-strike-extension.sql
+    description: FCN v1.1.0 capital-at-risk extensions - put_strike_pct, barrier_monitoring_type, settlement logic
+    applied: false
+    depends_on: [m0001, m0002]
+
 validators:
   - validator_id: phase-0-metadata
     script: validators/metadata_validator.py
@@ -125,6 +174,11 @@ validators:
     script: validators/parameter_validator.py
     phase: 2
     description: Parameter schema conformance and constraint validation
+
+  - validator_id: phase-4-logic
+    script: validators/logic_validator.py
+    phase: 4
+    description: Business logic validation including capital-at-risk settlement (BR-025) - placeholder pending engine integration
 
 documentation:
   spec_v1_0: specs/fcn-v1.0.md
@@ -160,3 +214,7 @@ change_log:
     date: 2025-10-16
     author: copilot
     changes: Added v1.1.0 with autocall (knock-out) barrier and issuer support; new branch fcn-base-nomem-autocall; migration m0002; business rules BR-020 through BR-023; schema diff documentation
+  - version: 1.1.0
+    date: 2025-10-16
+    author: copilot
+    changes: Enhanced v1.1.0 with capital-at-risk settlement (put_strike_pct, barrier_monitoring_type); deprecated v1.0.0; new branches fcn-caprisk-nomem, fcn-caprisk-mem, fcn-caprisk-nomem-autocall; migration m0003; business rules BR-024 through BR-026; deprecated BR-011; logic validator phase-4; 10 new capital-at-risk test vectors

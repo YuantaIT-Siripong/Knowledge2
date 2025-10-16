@@ -1,17 +1,18 @@
 ---
-title: FCN v1.0 Overview & KPI Baselines
+title: FCN v1.1 Overview & KPI Baselines
 doc_type: overview
 status: Draft
-version: 1.0.0
+version: 1.1.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
-last_reviewed: 2025-10-10
+last_reviewed: 2025-10-16
 next_review: 2026-01-10
 classification: Internal
-tags: [fcn, overview, kpi, governance, structured-notes, v1.0]
+tags: [fcn, overview, kpi, governance, structured-notes, v1.1, capital-at-risk]
 related:
   - specs/fcn-v1.0.md
+  - specs/fcn-v1.1.0.md
   - business-rules.md
   - er-fcn-v1.0.md
   - ../../sa/handoff/domain-handoff-fcn-v1.0.md
@@ -22,7 +23,45 @@ related:
 
 # 1. Product Summary
 
-Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Knock-in (KI) monitoring determines conditional principal protection behavior.
+Fixed Coupon Note (FCN) v1.1.0 defines a structured note paying periodic fixed coupons conditional on underlying performance (discrete observation dates). Version 1.1.0 introduces **capital-at-risk settlement** with put strike parameter, replacing v1.0 unconditional par recovery (now deprecated). Knock-in (KI) monitoring combined with worst-of final ratio comparison determines conditional principal loss at maturity. Also includes autocall (knock-out) early redemption and issuer governance features.
+
+## 1.1 Version 1.1.0 Key Changes
+
+**Capital-at-Risk Settlement (Primary Enhancement)**:
+- **New Parameter**: `put_strike_pct` (required, 0 < x ≤ 1.0) — threshold for determining principal loss
+- **Settlement Logic Change**: At maturity, if KI triggered AND worst_of_final_ratio < put_strike_pct, investor incurs proportional loss; otherwise receives 100% notional (BR-025)
+- **Deprecated**: BR-011 unconditional par recovery (v1.0 legacy mode); excluded from normative coverage
+- **New Parameter**: `barrier_monitoring_type` (enum: 'discrete', 'continuous') — currently only 'discrete' is normative for v1.1
+
+**Autocall & Issuer Governance** (carried forward from initial v1.1 draft):
+- Autocall (knock-out) early redemption with `knock_out_barrier_pct` and `auto_call_observation_logic` (BR-020, BR-021)
+- Issuer whitelist governance with required `issuer` parameter (BR-022)
+- Payoff precedence: Autocall → Coupon → KI monitoring → Capital-at-Risk Settlement (BR-023)
+
+**Impact on KPIs**:
+- Normative rule count increases from BR-001–023 to BR-001–026 (excl. deprecated BR-011, non-normative BR-012)
+- Test vector coverage expanded: 10+ new capital-at-risk scenarios required
+- Parameter Error Rate baseline will be recalibrated with BR-024, BR-026 validation rules
+- Data Completeness target now includes capital-at-risk branches: fcn-caprisk-nomem, fcn-caprisk-mem, fcn-caprisk-nomem-autocall
+
+**Version 1.0.0 Status**: Marked **Deprecated** as of 2025-10-16; existing v1.0 trades grandfathered with legacy par recovery behavior.
+
+## 1.2 Migration Guidance
+
+**For Existing v1.0 Trades**:
+- Remain valid; no forced migration required
+- Legacy par recovery (BR-011) continues to apply
+- Optional: backfill with `put_strike_pct = 1.0` and `barrier_monitoring_type = 'discrete'` to align schema (no behavioral change if put_strike_pct = 1.0)
+
+**For New v1.1 Trades**:
+- `put_strike_pct` is **required**; typical values: 0.70–1.0 (must be > knock_in_barrier_pct per BR-024)
+- `barrier_monitoring_type` defaults to 'discrete' if not specified
+- `issuer` is **required** (BR-022)
+- Settlement at maturity follows capital-at-risk logic (BR-025), NOT unconditional par recovery
+
+**Migration Scripts**:
+- **m0002**: Adds autocall and issuer parameters
+- **m0003**: Adds put_strike_pct, barrier_monitoring_type with backfill guards (idempotent)
 
 # 2. Objectives
 
@@ -77,7 +116,7 @@ Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic 
 
 ## 5.2 KPI Definitions
 
-- Parameter Error Rate: Only counts violations against normative validation rules (BR-001–004, BR-014, BR-015, BR-019). Governance or non-normative examples excluded.
+- Parameter Error Rate: Only counts violations against normative validation rules (BR-001–004, BR-014, BR-015, BR-019, BR-020, BR-024, BR-026). Governance or non-normative examples excluded. Deprecated BR-011 excluded.
 - Data Completeness: Normative branch definition per taxonomy finalization; excludes non-normative (e.g., proportional-loss).
 - Rule Mapping Coverage: Ensures each rule appears in at least one of: schema path mapping OR derived logic descriptor.
 - Precision Conformance: Enforces DEC-011 currency-aware scale before persistence.
@@ -86,11 +125,11 @@ Fixed Coupon Note (FCN) v1.0 baseline defines a structured note paying periodic 
 
 | KPI | Dependent Rules / Decisions | Blocking Artifact |
 |-----|-----------------------------|-------------------|
-| Parameter Error Rate | BR-001..004, 014, 015, 019 | parameter_validator.py |
+| Parameter Error Rate | BR-001..004, 014, 015, 019, 020, 024, 026 | parameter_validator.py |
 | Data Completeness | BR-017 | Test vectors set |
 | Precision Conformance | BR-019 / DEC-011 | precision checker |
 | Observation Idempotency | BR-007 | lifecycle processing design |
-| Rule Mapping Coverage | BR-001..019 | mapping extraction script |
+| Rule Mapping Coverage | BR-001..026 (excl. deprecated BR-011, non-normative BR-012) | mapping extraction script |
 | Test Vector Freshness | BR-017 | CI coverage metadata |
 | Time-to-Launch | ADR-003, ADR-004 | Activation checklist |
 
@@ -146,6 +185,7 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial overview & KPI baselines established |
+| 1.1.0 | 2025-10-16 | copilot | Updated to v1.1.0: added capital-at-risk settlement overview, migration guidance, KPI impact analysis, deprecated v1.0.0 status; extended KPI definitions to include BR-024–026 |
 
 # 12. References
 
