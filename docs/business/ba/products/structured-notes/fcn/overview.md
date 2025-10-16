@@ -62,6 +62,13 @@ Fixed Coupon Note (FCN) v1.1.0 defines a structured note paying periodic fixed c
 - Settlement at maturity follows capital-at-risk logic (BR-025), NOT unconditional par recovery
 - Autocall (knock-out) triggers on equality: ALL underlyings ≥ initial × knock_out_barrier_pct per BR-021
 
+**Coupon Rate Specification**:
+- The `coupon_rate_pct` parameter represents the **per-period coupon rate** (not annualized)
+- For monthly payments paying 13% p.a., use `coupon_rate_pct: 0.010833` (i.e., 0.13 / 12)
+- For quarterly payments paying 8% p.a., use `coupon_rate_pct: 0.02` (i.e., 0.08 / 4)
+- See [Coupon Rate Conversion Guideline](coupon-rate-conversion.md) for detailed conversion formulae, examples, and validation implications
+- Parameter validator includes heuristic warning if `coupon_rate_pct > 0.20` (suggests potential annual rate entry error)
+
 **Migration Scripts**:
 - **m0002**: Adds autocall and issuer parameters
 - **m0003**: Adds put_strike_pct, barrier_monitoring_type with backfill guards (idempotent)
@@ -192,6 +199,7 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 | 1.1.0 | 2025-10-16 | copilot | Updated to v1.1.0: added capital-at-risk settlement overview, migration guidance, KPI impact analysis, deprecated v1.0.0 status; extended KPI definitions to include BR-024–026 |
 | 1.1.0 | 2025-10-16 | copilot | Added activation checklist reference link in References section for v1.1.0 promotion readiness tracking |
 | 1.1.0 | 2025-10-16 | copilot | Documentation clarification: added explicit recovery_mode=capital-at-risk support, autocall equality semantics (≥), and physical worst-of settlement mechanics (BR-025A) to migration guidance |
+| 1.1.0 | 2025-10-16 | copilot | Added Coupon Rate Specification subsection to Migration Guidance: reference to coupon-rate-conversion.md, per-period vs. annual rate clarification, examples (monthly 13% p.a., quarterly 8% p.a.), parameter validator heuristic warning note |
 
 # 12. References
 
@@ -203,4 +211,5 @@ Data retention for KPI snapshots follows DEC-011 storage tiers for alignment wit
 - [ADR-004 Parameter Alias & Deprecation Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
 - [DEC-011 Notional Precision Policy](../../sa/design-decisions/dec-011-notional-precision.md)
 - [FCN v1.1.0 Activation Checklist](specs/_activation-checklist-v1.1.0.md)
+- [Coupon Rate Conversion Guideline](coupon-rate-conversion.md)
 - KPI Scripts (parameter_validator.py, coverage_validator.py, precision audit utilities)

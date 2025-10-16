@@ -1,0 +1,35 @@
+[
+  {
+    "id": "VONTOBEL-CH-001",
+    "legal_name": "Vontobel Financial Products Ltd",
+    "jurisdiction": "Switzerland",
+    "credit_rating": "A (S&P)",
+    "status": "Active",
+    "approval_date": "2025-09-15",
+    "exposure_limit_usd": 50000000,
+    "review_frequency": "quarterly",
+    "risk_manager_contact": "risk-manager@yuanta.co.th"
+  },
+  {
+    "id": "HSBC-UK-001",
+    "legal_name": "HSBC Bank plc",
+    "jurisdiction": "United Kingdom",
+    "credit_rating": "A+ (S&P)",
+    "status": "Active",
+    "approval_date": "2025-08-20",
+    "exposure_limit_usd": 100000000,
+    "review_frequency": "quarterly",
+    "risk_manager_contact": "risk-manager@yuanta.co.th"
+  },
+  {
+    "id": "JPMORGAN-US-001",
+    "legal_name": "JPMorgan Chase Bank, N.A.",
+    "jurisdiction": "United States",
+    "credit_rating": "A+ (S&P)",
+    "status": "Active",
+    "approval_date": "2025-09-01",
+    "exposure_limit_usd": 150000000,
+    "review_frequency": "quarterly",
+    "risk_manager_contact": "risk-manager@yuanta.co.th"
+  }
+]

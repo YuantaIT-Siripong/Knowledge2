@@ -2,7 +2,7 @@
 title: FCN v1.1 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.1.4
+version: 1.1.5
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -19,6 +19,8 @@ related:
   - ../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../sa/design-decisions/adr-004-parameter-alias-policy.md
   - ../../sa/design-decisions/dec-011-notional-precision.md
+  - coupon-rate-conversion.md
+  - data/issuer_whitelist.json
 ---
 
 # FCN v1.1 Business Rules
@@ -65,18 +67,20 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 | BR-024 | Validation | `0 < put_strike_pct ≤ 1.0` and `knock_in_barrier_pct < put_strike_pct` | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
 | BR-025 | Settlement (Capital-at-Risk) | Maturity: if KI AND worst_of_final_ratio < put_strike_pct → proportional loss; else par redemption | Spec v1.1.0 §5 / BA | P0 | Draft | Yes |
 | BR-025A | Settlement (Physical Worst-of) | Physical settlement mechanics: IF settlement_type=physical-settlement AND recovery_mode=capital-at-risk AND loss condition triggered: share_count_worst = floor(notional / (initial_level_worst × put_strike_pct)); residual_cash = notional - share_count_worst × initial_level_worst × put_strike_pct; residual paid separately if ≥ minimum_cash_dust_threshold else added to final coupon | Spec v1.1.0 §5 / BA | P0 | Draft | Yes |
+| BR-025B | Settlement (Worst-of Tie-Break) | When multiple underlyings share identical worst_of_final_ratio, select the first in underlying_assets array for physical delivery (deterministic ordering) | settlement-physical-worst-of.md §3.1 / BA | P2 | Draft | Yes |
 | BR-026 | Validation / Monitoring | `barrier_monitoring_type` in ['discrete','continuous']; only 'discrete' normative v1.1 | Spec v1.1.0 §3 | P1 | Draft | Yes |
 
 ### 3.1 Notes
 - BR-011 deprecated and excluded from normative coverage metrics (legacy v1.0 trades only).
 - BR-024–026 introduce capital-at-risk settlement & monitoring extensibility.
 - BR-025A defines physical settlement share delivery mechanics for capital-at-risk mode with strike-cost calculation.
+- BR-025B ensures deterministic tie-breaking when multiple underlyings have identical worst_of_final_ratio (first occurrence in underlying_assets array wins).
 - Continuous monitoring reserved (non-normative) until future version (target v1.2+).
 
 ## 4. Rule Categories
 - **Validation**: BR-001–004, 014, 015, 019, 020, 024, 026
 - **Business Logic**: BR-005–010, 013, 021, 023, 025 (BR-011 deprecated, BR-012 non-norm)
-- **Settlement & Capital-at-Risk**: BR-024, BR-025, BR-025A, BR-026
+- **Settlement & Capital-at-Risk**: BR-024, BR-025, BR-025A, BR-025B, BR-026
 - **Data Integrity**: BR-016
 - **Governance**: BR-017–018, 022
 - **Precision**: BR-019
@@ -131,6 +135,7 @@ Canonical parameter: `notional`; capital-at-risk threshold: `put_strike_pct`.
 | 1.1.2 | 2025-10-16 | copilot | Documentation adjustments: updated schema description, deprecated barrier_monitoring field, integrated activation checklist reference, added alias register reference; no rule logic changes |
 | 1.1.3 | 2025-10-16 | copilot | Added BR-025A (physical worst-of settlement mechanics with share_count_worst formula); updated BR-021 to explicitly state equality triggers (≥); added capital-at-risk to recovery_mode enum; updated rule categories to include Settlement & Capital-at-Risk |
 | 1.1.4 | 2025-10-16 | copilot | Hygiene: normalized 'notional' naming (replaced 'notional_amount' with canonical 'notional'), added BR-025A derived fields mapping subsection (share_count_worst, residual_cash traceability), updated Naming Note with deprecation notice, alias register cross-reference (no logic changes) |
+| 1.1.5 | 2025-10-16 | copilot | Added BR-025B (Worst-of Tie-Break Policy): deterministic ordering for tie-breaking when multiple underlyings share identical worst_of_final_ratio (first in underlying_assets array); updated rule categories; added references to coupon-rate-conversion.md and issuer_whitelist.json; supports settlement-physical-worst-of.md OQ-PHYS-001 resolution |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
@@ -142,3 +147,6 @@ Canonical parameter: `notional`; capital-at-risk threshold: `put_strike_pct`.
 - [ADR-003 Version Activation](../../sa/design-decisions/adr-003-fcn-version-activation.md)
 - [ADR-004 Parameter Alias Policy](../../sa/design-decisions/adr-004-parameter-alias-policy.md)
 - [DEC-011 Notional Precision](../../sa/design-decisions/dec-011-notional-precision.md)
+- [Coupon Rate Conversion Guideline](coupon-rate-conversion.md)
+- [Issuer Whitelist Data](data/issuer_whitelist.json)
+- [Physical Worst-of Settlement Guideline](settlement-physical-worst-of.md)

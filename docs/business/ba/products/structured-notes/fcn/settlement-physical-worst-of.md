@@ -2,7 +2,7 @@
 title: Physical Worst-of Settlement Guideline
 doc_type: guideline
 status: Draft
-version: 1.0.0
+version: 1.0.1
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-16
@@ -48,6 +48,22 @@ Where:
 - N = total number of underlyings in basket
 - final_level_i = closing price of underlying i at maturity observation
 - initial_level_i = initial fixing price of underlying i at issue
+
+**Tie-Breaking Rule** (Deterministic Ordering):
+When multiple underlyings share the exact same worst_of_final_ratio (i.e., final_level_i / initial_level_i are identical to machine precision), the worst performer is selected based on the **first occurrence in the underlying_assets array**.
+
+**Rationale**:
+- Ensures deterministic, reproducible settlement calculations across systems
+- Avoids ambiguity and operational disputes
+- Aligns with standard industry practice for worst-of instruments
+- Leverages the canonical ordering already defined in trade parameters
+- No dependency on external factors (alphabetical sorting, market cap, etc.)
+
+**Implementation**:
+- Iterate through underlying_assets array in order (index 0, 1, 2, ...)
+- Track the minimum final_ratio and corresponding index
+- If tie occurs, the first-encountered index wins (no override)
+- Related business rule: BR-025B (Worst-of Tie-Break Policy)
 
 ### 3.2 Calculate Share Count
 
@@ -212,16 +228,17 @@ If residual cash < threshold AND no final coupon is due (e.g., coupon condition 
 
 ## 6. Open Questions
 
-### OQ-PHYS-001: Tie-Breaking for Multiple Worst Assets
+### OQ-PHYS-001: Tie-Breaking for Multiple Worst Assets [RESOLVED]
 **Question**: If multiple underlyings have identical worst_of_final_ratio, which asset is delivered?
 
-**Options**:
-1. Alphabetical order by symbol
-2. Order in underlying_assets array
-3. Issuer discretion documented in confirmation
+**Resolution** (2025-10-16):
+**Selected Option**: Order in underlying_assets array (first occurrence)
 
-**Owner**: BA  
-**Target Resolution**: Q4 2025
+**Policy**: When multiple underlyings share the exact same worst_of_final_ratio, the tie is resolved by selecting the **first occurrence in the underlying_assets array**. This ensures deterministic ordering, avoids operational ambiguity, and aligns with standard industry practice.
+
+**Implementation**: See section 3.1 for detailed tie-breaking rule and rationale. Related business rule: BR-025B.
+
+**Status**: RESOLVED
 
 ### OQ-PHYS-002: Corporate Action Adjustments
 **Question**: How are corporate actions (splits, dividends, mergers) handled during note lifecycle?
@@ -281,3 +298,4 @@ Test vectors covering physical settlement:
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-16 | copilot | Initial guideline: BR-025A operationalization with formula, examples, rounding policy, open questions |
+| 1.0.1 | 2025-10-16 | copilot | Resolved OQ-PHYS-001 (tie-breaking rule): added definitive policy for worst-of tie resolution using underlying_assets array order (first occurrence); updated section 3.1 with tie-breaking rule, rationale, and implementation guidance; marked OQ-PHYS-001 as RESOLVED; related to new BR-025B |
