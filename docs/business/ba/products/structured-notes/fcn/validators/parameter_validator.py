@@ -32,6 +32,8 @@ class ParameterValidator:
         self.schema = self._load_schema(schema_path)
         self.errors = []
         self.warnings = []
+        self.issuer_whitelist = None
+        self.issuer_whitelist_loaded = False
     
     def _load_schema(self, schema_path: Path) -> Dict:
         """Load JSON schema."""
@@ -41,6 +43,46 @@ class ParameterValidator:
         except Exception as e:
             print(f"Error loading schema: {e}")
             sys.exit(1)
+    
+    def _load_issuer_whitelist(self) -> List[str]:
+        """Load issuer whitelist from data/issuer_whitelist.json (cached)."""
+        if self.issuer_whitelist_loaded:
+            return self.issuer_whitelist
+        
+        self.issuer_whitelist_loaded = True
+        
+        # Determine path relative to this script
+        script_dir = Path(__file__).parent
+        whitelist_path = script_dir.parent / 'data' / 'issuer_whitelist.json'
+        
+        if not whitelist_path.exists():
+            self.warnings.append(
+                f"Issuer whitelist not found at {whitelist_path}. "
+                f"Skipping BR-022 issuer validation."
+            )
+            self.issuer_whitelist = None
+            return None
+        
+        try:
+            with open(whitelist_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                # Extract issuer IDs from whitelist
+                if isinstance(data, list):
+                    self.issuer_whitelist = [issuer.get('id') for issuer in data if 'id' in issuer]
+                else:
+                    self.warnings.append(
+                        f"Issuer whitelist format unexpected (expected list). "
+                        f"Skipping BR-022 issuer validation."
+                    )
+                    self.issuer_whitelist = None
+                return self.issuer_whitelist
+        except Exception as e:
+            self.warnings.append(
+                f"Failed to load issuer whitelist: {e}. "
+                f"Skipping BR-022 issuer validation."
+            )
+            self.issuer_whitelist = None
+            return None
     
     def extract_parameters_from_vector(self, file_path: Path) -> Dict:
         """Extract parameters from test vector file."""
@@ -99,6 +141,19 @@ class ParameterValidator:
                     f"Ensure per-period conversion per coupon-rate-conversion.md. "
                     f"For monthly payments, divide annual rate by 12; for quarterly, divide by 4."
                 )
+        
+        # Validate issuer whitelist (BR-022)
+        if 'issuer' in parameters:
+            issuer = parameters['issuer']
+            whitelist = self._load_issuer_whitelist()
+            if whitelist is not None:
+                if issuer not in whitelist:
+                    self.errors.append(
+                        f"{context}: ERR_FCN_BR_022_ISSUER_NOT_WHITELISTED - "
+                        f"Issuer '{issuer}' is not in the approved issuer whitelist. "
+                        f"See data/issuer_whitelist.json for approved issuers."
+                    )
+                    all_valid = False
         
         for param_name in parameters.keys():
             # Check snake_case

@@ -21,18 +21,20 @@ This directory contains normative test vectors for Fixed Coupon Note (FCN) produ
 #### Capital-at-Risk No-Memory Branch (`fcn-caprisk-nomem`)
 1. **fcn-v1.1-caprisk-nomem-baseline.md**: No KI, no loss (baseline scenario)
 2. **fcn-v1.1-caprisk-nomem-ki-no-loss.md**: KI triggered but worst_of_final ≥ put_strike_pct (no loss)
-3. **fcn-v1.1-caprisk-nomem-ki-loss.md**: KI triggered and worst_of_final < put_strike_pct (loss incurred)
+3. **fcn-v1.1-caprisk-nomem-ki-loss.md**: KI triggered and worst_of_final < put_strike_pct (loss incurred, cash settlement)
+4. **fcn-v1.1-caprisk-nomem-ki-loss-physical.md**: KI triggered and worst_of_final < put_strike_pct (loss incurred, physical settlement) — Normative for BR-025A
+5. **fcn-v1.1-caprisk-nomem-ki-loss-physical-tiebreak.md**: KI triggered with tie-break scenario (two underlyings identical worst_of_final_ratio) — Normative for BR-025B
 
 #### Capital-at-Risk Memory Branch (`fcn-caprisk-mem`)
-4. **fcn-v1.1-caprisk-mem-baseline.md**: Memory variant baseline, no KI
-5. **fcn-v1.1-caprisk-mem-accrual-release.md**: Coupon accrual and release pattern
-6. **fcn-v1.1-caprisk-mem-ki-loss.md**: Memory + capital-at-risk loss
+6. **fcn-v1.1-caprisk-mem-baseline.md**: Memory variant baseline, no KI
+7. **fcn-v1.1-caprisk-mem-accrual-release.md**: Coupon accrual and release pattern
+8. **fcn-v1.1-caprisk-mem-ki-loss.md**: Memory + capital-at-risk loss
 
 #### Capital-at-Risk + Autocall Branch (`fcn-caprisk-nomem-autocall`)
-7. **fcn-v1.1-caprisk-nomem-autocall-preempt.md**: Autocall preempts capital-at-risk (precedence)
-8. **fcn-v1.1-autocall-trigger.md**: Standard autocall trigger (mid-lifecycle)
-9. **fcn-v1.1-autocall-near-miss.md**: Autocall near-miss (proceeds to maturity)
-10. **fcn-v1.1-autocall-late-trigger.md**: Autocall at final observation
+9. **fcn-v1.1-caprisk-nomem-autocall-preempt.md**: Autocall preempts capital-at-risk (precedence)
+10. **fcn-v1.1-autocall-trigger.md**: Standard autocall trigger (mid-lifecycle)
+11. **fcn-v1.1-autocall-near-miss.md**: Autocall near-miss (proceeds to maturity)
+12. **fcn-v1.1-autocall-late-trigger.md**: Autocall at final observation
 
 **Settlement Mode**: Capital-at-risk (BR-025)  
 **Key Feature**: Conditional loss if KI triggered AND worst_of_final_ratio < put_strike_pct
@@ -204,8 +206,16 @@ For version promotion to **Active** status:
   - At least 1 no-loss scenario (KI but recovery)
   - At least 1 loss scenario (KI and poor recovery)
   - At least 1 autocall precedence scenario
+- Physical settlement (BR-025A) requires:
+  - At least 1 normative physical settlement vector with share_count_worst and residual_cash
+- Tie-break coverage (BR-025B):
+  - At least 1 normative tie-break vector demonstrating first-in-array selection
 
-Current v1.1 coverage: **10 vectors** across 3 capital-at-risk branches (target: met).
+Current v1.1 coverage: **12 vectors** across 3 capital-at-risk branches (target: met).
+
+**Normative Physical Settlement Coverage**:
+- BR-025A: `fcn-v1.1-caprisk-nomem-ki-loss-physical.md` (35,714 shares + $8 residual)
+- BR-025B: `fcn-v1.1-caprisk-nomem-ki-loss-physical-tiebreak.md` (tie-break: ABC.US selected)
 
 ## Sample Payloads
 
@@ -238,3 +248,4 @@ See `/sample-payloads/` subdirectory for JSON parameter examples suitable for AP
 |------|--------|--------|
 | 2025-10-09 | siripong.s | Initial v1.0 test vectors (5 vectors) |
 | 2025-10-16 | copilot | Added v1.1 capital-at-risk test vectors (10 vectors); documented worst_of_final_ratio computation and capital-at-risk settlement logic |
+| 2025-10-16 | copilot | Activation Readiness: added normative physical settlement vectors (fcn-v1.1-caprisk-nomem-ki-loss-physical.md, fcn-v1.1-caprisk-nomem-ki-loss-physical-tiebreak.md); updated coverage requirements to include BR-025A and BR-025B; total vectors now 12; clarified normative evidence for physical settlement mechanics and tie-break policy |
