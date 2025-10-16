@@ -167,6 +167,50 @@ BEGIN
     END
     
     -- ========================================================================
+    -- RULE 5: recovery_mode='capital-at-risk' requires put_strike_pct IS NOT NULL
+    -- ========================================================================
+    DECLARE @recovery_mode NVARCHAR(50);
+    DECLARE @put_strike_pct DECIMAL(9, 6);
+    
+    SELECT @recovery_mode = recovery_mode, @put_strike_pct = put_strike_pct
+    FROM fcn_template
+    WHERE template_id = @template_id;
+    
+    IF @recovery_mode = 'capital-at-risk' AND @put_strike_pct IS NULL
+    BEGIN
+        SET @ErrorMessage = 'recovery_mode=''capital-at-risk'' requires put_strike_pct to be NOT NULL for template: ' + CAST(@template_id AS NVARCHAR(36));
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN;
+    END
+    
+    -- ========================================================================
+    -- RULE 6: share_delivery_enabled=1 requires settlement_type='physical-settlement' AND put_strike_pct IS NOT NULL
+    -- ========================================================================
+    DECLARE @share_delivery_enabled BIT;
+    DECLARE @settlement_type NVARCHAR(50);
+    
+    SELECT @share_delivery_enabled = share_delivery_enabled, @settlement_type = settlement_type
+    FROM fcn_template
+    WHERE template_id = @template_id;
+    
+    IF @share_delivery_enabled = 1
+    BEGIN
+        IF @settlement_type != 'physical-settlement'
+        BEGIN
+            SET @ErrorMessage = 'share_delivery_enabled=1 requires settlement_type=''physical-settlement'' for template: ' + CAST(@template_id AS NVARCHAR(36));
+            RAISERROR(@ErrorMessage, 16, 1);
+            RETURN;
+        END
+        
+        IF @put_strike_pct IS NULL
+        BEGIN
+            SET @ErrorMessage = 'share_delivery_enabled=1 requires put_strike_pct to be NOT NULL for template: ' + CAST(@template_id AS NVARCHAR(36));
+            RAISERROR(@ErrorMessage, 16, 1);
+            RETURN;
+        END
+    END
+    
+    -- ========================================================================
     -- VALIDATION PASSED
     -- ========================================================================
     PRINT 'Template validation passed for: ' + CAST(@template_id AS NVARCHAR(36));
