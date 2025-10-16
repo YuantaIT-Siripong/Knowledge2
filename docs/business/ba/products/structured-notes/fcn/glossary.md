@@ -41,13 +41,17 @@ Columns:
 | Underlying | Asset (equity, index, etc.) whose performance drives coupons & KI. | Yes | Spec §3 | Basket allowed (equal-weight baseline). |
 | Basket | Collection of multiple underlyings forming a single payoff unit. | Yes | Spec §3 | Equal-weight default unless weights supplied. |
 | Knock-In (KI) | Event when any underlying breaches the knock-in barrier on an observation date. | Yes | BR-005 | Sets recovery context (par-recovery normative). |
-| Knock-In Barrier (%) | Percentage of initial level defining KI breach threshold. | Yes | Spec §3 / BR-003 | Must be < redemption barrier. |
-| Redemption Barrier (%) | Threshold tested at maturity to determine redemption conditions (par baseline). | Yes | Spec §3 / BR-003 | In v1.0 par-recovery yields same payout; future variants may diverge. |
+| Knock-In Barrier (%) | Percentage of initial level defining KI breach threshold. | Yes | Spec §3 / BR-003, BR-024 | Must be < put_strike_pct (v1.1+); v1.0 legacy: < redemption_barrier_pct. |
+| Redemption Barrier (%) | **LEGACY (v1.0)**: Threshold tested at maturity for legacy par recovery redemption conditions. | No (v1.0 legacy) | Spec §3 / BR-003 | Replaced by put_strike_pct in v1.1; no payoff effect in capital-at-risk mode. |
 | Coupon Condition Threshold (%) | Minimum fraction of initial level each underlying must meet for a coupon to be paid. | Yes | Spec §3 / BR-006 | Applied to all underlyings (ALL). |
 | Memory Coupon | Feature allowing unpaid coupons to accumulate and pay later when condition satisfied. | Yes (optional) | BR-008, BR-009 | Controlled by `is_memory_coupon` and cap parameter. |
 | Memory Carry Cap Count | Maximum number of unpaid coupons that can accrue (if set). | Yes (optional) | BR-008 | Null = unlimited accumulation. |
-| Recovery Mode | Method for principal treatment after KI or at maturity. | Par only normative | Spec §3 / BR-011,012 | `par-recovery` normative; `proportional-loss` illustrative. |
-| Par Recovery | Recovery mode returning 100% notional at maturity irrespective of KI. | Yes | BR-011 | Default simpler baseline risk profile. |
+| Put Strike (%) | Percentage of initial level defining the threshold for capital-at-risk loss calculation at maturity (v1.1+). | Yes (v1.1+) | Spec v1.1.0 §3 / BR-024, BR-025 | Must be > knock_in_barrier_pct and ≤ 1.0. |
+| Worst-of Final Ratio | The minimum performance ratio across all underlyings at maturity: min(final_level / initial_level) for all underlyings. | Yes (v1.1+) | BR-025 | Derived field; used in capital-at-risk settlement logic. |
+| Barrier Monitoring Type | Mechanism for evaluating barrier: 'discrete' (scheduled observation dates only) vs 'continuous' (intraday monitoring) (v1.1+). | Discrete only normative (v1.1) | Spec v1.1.0 §3 / BR-026 | Continuous reserved for future; requires real-time data infrastructure. |
+| Capital-at-Risk Settlement | Settlement mode where, at maturity, if KI triggered AND worst_of_final_ratio < put_strike_pct, principal loss = notional × (put_strike_pct - worst_of_final_ratio) / put_strike_pct; else redeem 100% notional (v1.1+). | Yes (v1.1+) | Spec v1.1.0 §5 / BR-025 | Replaces unconditional par recovery (BR-011 deprecated). |
+| Legacy Par Recovery | **DEPRECATED (v1.0 only)**: Recovery mode returning 100% notional at maturity irrespective of KI, with no loss exposure. | No (v1.0 legacy) | BR-011 (deprecated) | Superseded by capital-at-risk settlement in v1.1; excluded from v1.1 normative coverage. |
+| Recovery Mode | Method for principal treatment after KI or at maturity. | Capital-at-risk normative (v1.1+) | Spec §3 / BR-011,012,025 | v1.1: `capital-at-risk` normative; v1.0: `par-recovery` legacy; `proportional-loss` illustrative only. |
 | Proportional Loss | Recovery mode delivering underlying exposure proportionally to performance. | No (illustrative) | BR-012 | Non-normative examples only. |
 | Settlement Type | Method of final delivery (assets or cash). | Physical normative | Spec §3 / BR-012 | `physical-settlement` normative; cash illustrative. |
 | Barrier Monitoring (Type) | Mechanism for evaluating barrier: discrete (scheduled dates) vs continuous (intraday). | Discrete only normative | Spec §3.1 | Continuous deferred (requires intraday data infra). |
@@ -147,6 +151,7 @@ Columns:
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial glossary draft (core product, governance, KPI & decision terms) |
+| 1.1.0 | 2025-10-16 | copilot | Added Put Strike (%), Worst-of Final Ratio, Barrier Monitoring Type, Capital-at-Risk Settlement, Legacy Par Recovery; marked Redemption Barrier (%) as legacy; updated Knock-In Barrier (%) and Recovery Mode for v1.1; marked BR-011 deprecated |
 
 ## 11. References
 

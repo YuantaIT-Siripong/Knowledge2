@@ -16,6 +16,7 @@
     "underlying_assets",
     "observation_dates",
     "knock_in_barrier_pct",
+    "put_strike_pct",
     "coupon_rate_pct",
     "is_memory_coupon",
     "recovery_mode",
@@ -110,7 +111,19 @@
       "minimum": 0,
       "maximum": 1,
       "exclusiveMinimum": true,
-      "description": "Knock-in barrier as decimal ratio (e.g., 0.70 for 70%); triggers capital-at-risk when breached downward"
+      "description": "Knock-in barrier as decimal ratio (e.g., 0.70 for 70%); triggers capital-at-risk condition when breached downward; must be < put_strike_pct (BR-003, BR-024)"
+    },
+    "put_strike_pct": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1.0,
+      "description": "Put strike threshold as decimal ratio (e.g., 0.80 for 80%) for capital-at-risk settlement; at maturity, if KI triggered AND worst_of_final_ratio < put_strike_pct, loss incurred; must be > knock_in_barrier_pct (BR-024, BR-025)"
+    },
+    "barrier_monitoring_type": {
+      "type": "string",
+      "enum": ["discrete", "continuous"],
+      "default": "discrete",
+      "description": "Barrier monitoring mechanism: 'discrete' (scheduled observation dates only) or 'continuous' (intraday monitoring); only 'discrete' normative for v1.1 (BR-026)"
     },
     "knock_out_barrier_pct": {
       "type": ["number", "null"],
@@ -177,7 +190,7 @@
       "minimum": 0,
       "maximum": 1,
       "exclusiveMinimum": true,
-      "description": "Final redemption barrier for par redemption eligibility"
+      "description": "LEGACY (v1.0): Reserved for backward compatibility; no payoff effect in v1.1 capital-at-risk mode; superseded by put_strike_pct"
     },
     "observation_style": {
       "type": "string",
@@ -243,5 +256,8 @@
       }
     }
   ],
+  "dependencies": {
+    "comment": "Note: Ordering constraint knock_in_barrier_pct < put_strike_pct (BR-024) enforced at database constraint level; JSON Schema cross-field comparison limited"
+  },
   "additionalProperties": false
 }

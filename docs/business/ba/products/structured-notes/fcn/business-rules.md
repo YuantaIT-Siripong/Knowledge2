@@ -39,7 +39,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |---------|----------|-------------|----------------|----------|--------|-----------------|
 | BR-001 | Validation | `trade_date ≤ issue_date < maturity_date` ordering | Spec fcn-v1.0.md §3 / BA | P0 | Draft | Yes |
 | BR-002 | Validation | All `initial_levels` > 0 | Spec §3 / BA | P0 | Draft | Yes |
-| BR-003 | Validation | `0 < knock_in_barrier_pct < redemption_barrier_pct ≤ 1.0` | Spec §3 / BA | P0 | Draft | Yes |
+| BR-003 | Validation | `0 < knock_in_barrier_pct < put_strike_pct ≤ 1.0` (v1.1+); legacy: `knock_in_barrier_pct < redemption_barrier_pct` | Spec §3 / BA | P0 | Draft | Yes |
 | BR-004 | Validation | `documentation_version` equals active product version | Governance + Spec §3 / BA | P1 | Draft | Yes |
 | BR-005 | KI Logic | KI triggers if ANY underlying close ≤ `initial × knock_in_barrier_pct` on obs date | Spec §5 / BA | P0 | Draft | Yes |
 | BR-006 | Coupon Logic | Coupon condition: ALL closes ≥ `initial × coupon_condition_threshold_pct` | Spec §5 / BA | P0 | Draft | Yes |
@@ -47,7 +47,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-008 | Coupon Logic | Memory accumulation capped by `memory_carry_cap_count` | Spec §3 & §5 / BA | P0 | Draft | Yes |
 | BR-009 | Coupon Calc | `coupon_amount = notional_amount × coupon_rate_pct × (accrued_unpaid + 1)` | Spec §5 / BA | P0 | Draft | Yes |
 | BR-010 | Coupon Timing | Payment date aligned by observation index → `coupon_payment_dates[i]` | Spec §3 / BA | P0 | Draft | Yes |
-| BR-011 | Settlement | Par recovery pays 100% notional_amount at maturity regardless of KI | Spec §2, §5 / BA | P0 | Draft | Yes |
+| BR-011 | Settlement | **DEPRECATED (v1.0 Legacy)**: Par recovery pays 100% notional_amount at maturity regardless of KI | Spec §2, §5 / BA | P0 | Deprecated | No |
 | BR-012 | Settlement | Proportional-loss (example only) delivers underlying units (non-normative) | Spec §2 (examples) / BA | P2 | Draft | Non-Normative |
 | BR-013 | Settlement | Final coupon eligibility independent of redemption calc | Spec §5 / BA | P1 | Draft | Yes |
 | BR-014 | Validation | Observation dates strictly increasing & each < maturity_date | Spec §3 / BA | P0 | Draft | Yes |
@@ -60,20 +60,26 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-021 | Autocall Logic | On observation date, if ALL underlyings close >= initial × knock_out_barrier_pct AND trade not matured nor previously auto-called, redeem early (principal + due coupon); cease further observations | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
 | BR-022 | Governance (Issuer) | `issuer` must exist in approved issuer whitelist for active product version; mismatch blocks booking | Spec v1.1.0 §3 / BA | P1 | Draft | Yes |
 | BR-023 | Business Logic | `coupon_condition_threshold_pct` is independent of `knock_out_barrier_pct`; KO evaluation occurs prior to coupon condition; coupon condition may be <= KO barrier | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
+| BR-024 | Validation | `0 < put_strike_pct ≤ 1.0` and `knock_in_barrier_pct < put_strike_pct` (v1.1+) | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
+| BR-025 | Settlement (Capital-at-Risk) | At maturity: if KI triggered AND worst_of_final_ratio < put_strike_pct, then loss = notional_amount × (put_strike_pct - worst_of_final_ratio) / put_strike_pct; else redeem 100% notional (v1.1+) | Spec v1.1.0 §5 / BA | P0 | Draft | Yes |
+| BR-026 | Validation | `barrier_monitoring_type` in ['discrete', 'continuous']; only 'discrete' normative for v1.1 | Spec v1.1.0 §3 / BA | P1 | Draft | Yes |
 
 ### 3.1 Notes
+- BR-011 **DEPRECATED** in v1.1 (legacy par recovery); replaced by BR-025 capital-at-risk settlement; excluded from normative coverage metrics.
 - BR-012 is illustrative; excluded from v1.0 normative production flow.
 - BR-019 supersedes earlier informal precision wording.
 - BR-020–023 added in v1.1.0 for autocall (knock-out) and issuer support.
+- BR-024–026 added in v1.1.0 for capital-at-risk settlement with put strike parameter.
 
 ## 4. Rule Categories
 (See table above for membership.)
-- **Validation**: BR-001–004, 014, 015, 019, 020
-- **Business Logic**: BR-005–013 (BR-012 non-normative), 021, 023
+- **Validation**: BR-001–004, 014, 015, 019, 020, 024, 026
+- **Business Logic**: BR-005–010, BR-013, 021, 023 (BR-011 deprecated, BR-012 non-normative), 025
 - **Data Integrity**: BR-016
 - **Governance**: BR-017–018, 022
 - **Precision**: BR-019
 - **Autocall Logic**: BR-021, 023
+- **Capital-at-Risk Settlement**: BR-024, BR-025, BR-026
 
 ## 5. Implementation Mapping
 
@@ -95,8 +101,10 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | maturity_date | Trade.maturity_date | BR-001 | Yes | API, DB |  |
 | initial_levels[] | Underlying_Asset.initial_level | BR-002, BR-015 | Yes | API, DB | Positive; length sync |
 | underlying_symbols[] | Underlying_Asset.symbol | BR-015 | Yes | API, DB | Distinct; align lengths |
-| knock_in_barrier_pct | Trade.knock_in_barrier_pct | BR-003, BR-005 | Yes | API, DB | Range + KI logic |
-| redemption_barrier_pct | Trade.redemption_barrier_pct | BR-003 | Yes | API, DB | Upper bound relation |
+| knock_in_barrier_pct | Trade.knock_in_barrier_pct | BR-003, BR-005, BR-024 | Yes | API, DB | Range + KI logic |
+| put_strike_pct (v1.1+) | Trade.put_strike_pct | BR-003, BR-024, BR-025 | Yes | API, DB | Capital-at-risk threshold; ordering relation |
+| redemption_barrier_pct (legacy) | Trade.redemption_barrier_pct | BR-003 (legacy), BR-011 | No (v1.1+) | API, DB | Legacy parameter; no payoff effect in v1.1 capital-at-risk mode |
+| barrier_monitoring_type (v1.1+) | Trade.barrier_monitoring_type | BR-026 | Yes | API, DB | Discrete or continuous monitoring |
 | coupon_condition_threshold_pct | Trade.coupon_condition_threshold_pct | BR-006 | Yes | API | Level check factor |
 | observation_dates[] | Observation.observation_date | BR-007, BR-014 | Yes | API, DB, Logic | Idempotency + ordering |
 | coupon_payment_dates[] | Coupon_Decision.payment_date | BR-010 | Yes | API | Cardinality matches obs |
@@ -126,7 +134,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |--------|----------------|--------|------------|
 | Schema fields mapped → rule(s) | 100% | 100% | Schema fields with ≥1 rule link |
 | Rules with schema or derived mapping | 100% | 100% | Each rule mapped to schema path or derived field |
-| Normative rules with test vector linkage | 85% | 100% | BR-005–013 (excl. 012), BR-020–023 + all validation rules |
+| Normative rules with test vector linkage | 80% | 100% | BR-005–010, 013–023, 024–026 (excl. deprecated BR-011, non-normative BR-012) + all validation rules |
 | Governance rules automated checks | 50% | 100% | BR-017, BR-018, BR-022 CI enforcement |
 
 ## 7. Traceability Matrix
@@ -135,7 +143,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |---------|----------------|-----------------------|--------------------|----------------|
 | BR-001 | Spec §3 | Trade(trade_date, issue_date, maturity_date) | /trade_date /issue_date /maturity_date | All normative |
 | BR-002 | Spec §3 | Underlying_Asset(initial_level) | /initial_levels/items | All normative |
-| BR-003 | Spec §3 | Trade(knock_in_barrier_pct, redemption_barrier_pct) | /knock_in_barrier_pct /redemption_barrier_pct | All normative |
+| BR-003 | Spec §3 | Trade(knock_in_barrier_pct, put_strike_pct, redemption_barrier_pct) | /knock_in_barrier_pct /put_strike_pct /redemption_barrier_pct | All normative |
 | BR-004 | Spec §3 | Trade(documentation_version) | /documentation_version | All normative |
 | BR-005 | Spec §5 | Observation, Trade(ki_triggered) | (derived) | KI event vector |
 | BR-006 | Spec §5 | Coupon_Decision(condition_satisfied) | (derived) | Baseline, single-miss |
@@ -143,7 +151,7 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-008 | Spec §3, §5 | Coupon_Decision(accrued_unpaid) | /memory_carry_cap_count | Memory baseline |
 | BR-009 | Spec §5 | Coupon_Decision(coupon_amount) | (derived; uses /notional_amount) | All normative |
 | BR-010 | Spec §3 | Coupon_Decision(payment_date) | /coupon_payment_dates | All normative |
-| BR-011 | Spec §2, §5 | Trade(recovery_mode) | /recovery_mode | Baseline |
+| BR-011 | Spec §2, §5 (v1.0 legacy) | Trade(recovery_mode) | /recovery_mode | v1.0 legacy only (deprecated) |
 | BR-012 | Spec §2 (example) | Trade(recovery_mode, settlement_type) | /recovery_mode /settlement_type | Future examples |
 | BR-013 | Spec §5 | Coupon_Decision(final coupon) | (derived) | All normative |
 | BR-014 | Spec §3 | Observation(observation_date) | /observation_dates/items | All normative |
@@ -156,6 +164,9 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 | BR-021 | Spec v1.1.0 §4 | Trade(knock_out_barrier_pct, auto_call_observation_logic), Observation(autocall_triggered) | /knock_out_barrier_pct /auto_call_observation_logic | fcn-v1.1.0-nomem-autocall-* |
 | BR-022 | Spec v1.1.0 §3 | Trade(issuer), Issuer_Whitelist(issuer_id) | /issuer | v1.1.0 governance vectors |
 | BR-023 | Spec v1.1.0 §4 | Trade(coupon_condition_threshold_pct, knock_out_barrier_pct) | /coupon_condition_threshold_pct /knock_out_barrier_pct | v1.1.0 precedence test |
+| BR-024 | Spec v1.1.0 §3 | Trade(put_strike_pct, knock_in_barrier_pct) | /put_strike_pct /knock_in_barrier_pct | fcn-v1.1-caprisk-* vectors |
+| BR-025 | Spec v1.1.0 §5 | Trade(put_strike_pct), Observation(worst_of_final_ratio, ki_triggered) | /put_strike_pct (derived: worst_of_final) | fcn-v1.1-caprisk-nomem-ki-loss, fcn-v1.1-caprisk-mem-ki-loss |
+| BR-026 | Spec v1.1.0 §3 | Trade(barrier_monitoring_type) | /barrier_monitoring_type | v1.1.0 validation vectors |
 
 ## 8. Rule Validation Strategy
 
@@ -163,10 +174,10 @@ Defines the authoritative rule set for FCN v1.0: validation, lifecycle logic, ca
 |-------|-------|-------|--------|
 | 0 | Structure / metadata | (pre) | Complete |
 | 1 | Taxonomy & branch | BR-017 (gate) | Complete |
-| 2 | Parameter constraints | BR-001–004, 014, 015, 019 | In Progress |
+| 2 | Parameter constraints | BR-001–004, 014, 015, 019, 020, 024, 026 | In Progress |
 | 3 | Coverage mapping | BR-017 | In Progress |
-| 4 | Business logic simulation | BR-005–013, 016 | Planned |
-| 5 | Governance automation | BR-018 | Planned |
+| 4 | Business logic simulation | BR-005–010, 013, 016, 021, 023, 025 (excl. deprecated BR-011, non-normative BR-012) | Planned |
+| 5 | Governance automation | BR-018, BR-022 | Planned |
 
 ## 9. Open Questions
 
@@ -195,6 +206,7 @@ All rule text, mapping rows, formulas, and validator logic referencing the input
 | 1.0.2 | 2025-10-10 | siripong.s | Consolidated schema–rule–data mapping (PR #26), added coverage metrics |
 | 1.0.3 | 2025-10-10 | copilot | Hygiene: canonical parameter name notional_amount; mapping & traceability updates |
 | 1.1.0 | 2025-10-16 | copilot | Added BR-020–023 for v1.1.0 autocall & issuer support; extended mapping, traceability, and coverage metrics; added OQ-BR-005 |
+| 1.1.1 | 2025-10-16 | copilot | Added BR-024–026 for capital-at-risk settlement (put_strike_pct, barrier_monitoring_type); deprecated BR-011 (legacy par recovery); updated BR-003 ordering to use put_strike_pct; extended mapping & traceability |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
