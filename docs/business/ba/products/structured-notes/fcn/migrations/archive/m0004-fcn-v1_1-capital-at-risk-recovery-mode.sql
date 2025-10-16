@@ -1,3 +1,21 @@
+-- ============================================================================
+-- OBSOLETE MIGRATION - DO NOT USE FOR NEW ENVIRONMENTS
+-- ============================================================================
+-- This migration has been SUPERSEDED by fcn_schema_consolidated_v1_1.sql
+--
+-- This file is retained for historical audit and reference purposes only.
+-- DO NOT apply this migration to new database environments.
+--
+-- For new installations, use:
+--   docs/business/ba/products/structured-notes/fcn/migrations/fcn_schema_consolidated_v1_1.sql
+--
+-- This legacy migration was part of the incremental migration series (m0001–m0004)
+-- that has been consolidated into a single authoritative schema file.
+--
+-- Consolidation Date: 2025-10-16
+-- Superseded By: fcn_schema_consolidated_v1_1.sql
+-- ============================================================================
+
 -- Migration: m0004-fcn-v1_1-capital-at-risk-recovery-mode.sql
 -- Description: Add recovery_mode='capital-at-risk' enumeration support
 -- Depends on: m0001, m0002, m0003
