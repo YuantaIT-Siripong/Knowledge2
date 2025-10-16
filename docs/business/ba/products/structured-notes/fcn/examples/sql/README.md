@@ -2,7 +2,7 @@
 title: FCN SQL Examples
 doc_type: reference
 status: Draft
-version: 1.0.1
+version: 1.0.2
 owner: siripong.s@yuanta.co.th
 created: 2025-10-16
 last_reviewed: 2025-10-16
@@ -23,6 +23,7 @@ related:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.2 | 2025-10-16 | Added fcn-sample-product-insertion.sql demonstrating complete template→trade flow with Yuanta sample FCN (AMZN/ORCL/PLTR, 13% p.a., physical-settlement, capital-at-risk) |
 | 1.0.1 | 2025-10-16 | Harmonization: Updated settlement_type values to align with FCN v1.1 canonical schema ('cash-settlement', 'physical-settlement'); changed default recovery_mode to 'capital-at-risk'; added migration m0012 |
 | 1.0.0 | 2025-10-16 | Initial version: Template schema and validation procedures |
 
@@ -61,6 +62,7 @@ This directory contains SQL Server example scripts demonstrating FCN (Fixed Coup
 ```
 examples/sql/
 ├── README.md                           # This file
+├── fcn-sample-product-insertion.sql    # Sample: Complete template→trade flow (Yuanta sample FCN)
 ├── fcn-example-physical-loss.sql       # Scenario: Physical worst-of settlement with capital loss
 ├── fcn-example-ki-no-loss.sql          # Scenario: Knock-in triggered but no loss (par recovery)
 ├── fcn-example-baseline.sql            # Scenario: Standard FCN without autocall or KI
@@ -69,7 +71,7 @@ examples/sql/
 └── (future scripts as needed)
 ```
 
-**Note**: The scenario script files referenced above are placeholders for future development. This README establishes the structure and usage patterns.
+**Note**: The fcn-sample-product-insertion.sql script is a working demonstration of template and trade creation. Other scenario script files are placeholders for future development. This README establishes the structure and usage patterns.
 
 ## 4. Template vs Trade Flow
 
@@ -109,15 +111,16 @@ Template (1) ----< Trade (N)
 
 The following table outlines the planned scenario scripts. Each script demonstrates a specific FCN payoff behavior and edge case.
 
-| Script Name                        | Scenario Description                                                                 | Key Features                                                                 | Business Rules Tested          |
-|------------------------------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------|--------------------------------|
-| `fcn-example-physical-loss.sql`    | Physical worst-of settlement with capital loss at maturity                           | `settlement_type='physical-settlement'`, `recovery_mode='capital-at-risk'`   | BR-025A, BR-003, BR-005        |
-| `fcn-example-ki-no-loss.sql`       | Knock-in triggered but final level above put strike (par recovery)                  | `recovery_mode='par-recovery'`, KI barrier breached, final > put strike      | BR-005, BR-010, BR-003         |
-| `fcn-example-baseline.sql`         | Standard FCN without autocall or knock-in (all coupons paid, par redemption)        | No `knock_out_barrier_pct`, all observations above thresholds                | BR-006, BR-007, BR-001         |
-| `fcn-example-tie-break.sql`        | Multiple underlyings at identical levels (worst-of selection when tied)             | Two underlyings at exact same performance                                    | BR-005, BR-006, tie-break logic|
-| `fcn-example-autocall-equality.sql`| Autocall barrier exactly met (boundary condition testing)                            | Final level = `initial × knock_out_barrier_pct` (exact match)                | BR-020, BR-021, boundary test  |
+| Script Name                            | Scenario Description                                                                 | Key Features                                                                 | Business Rules Tested          |
+|----------------------------------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------|--------------------------------|
+| `fcn-sample-product-insertion.sql`     | Complete template→trade workflow demonstration (not a payoff scenario)              | Idempotent template creation, trade instantiation, underlying fixings; uses Yuanta sample FCN (AMZN/ORCL/PLTR, 13% p.a., physical-settlement, capital-at-risk) | Template validation, BR-025A   |
+| `fcn-example-physical-loss.sql`        | Physical worst-of settlement with capital loss at maturity                           | `settlement_type='physical-settlement'`, `recovery_mode='capital-at-risk'`   | BR-025A, BR-003, BR-005        |
+| `fcn-example-ki-no-loss.sql`           | Knock-in triggered but final level above put strike (par recovery)                  | `recovery_mode='par-recovery'`, KI barrier breached, final > put strike      | BR-005, BR-010, BR-003         |
+| `fcn-example-baseline.sql`             | Standard FCN without autocall or knock-in (all coupons paid, par redemption)        | No `knock_out_barrier_pct`, all observations above thresholds                | BR-006, BR-007, BR-001         |
+| `fcn-example-tie-break.sql`            | Multiple underlyings at identical levels (worst-of selection when tied)             | Two underlyings at exact same performance                                    | BR-005, BR-006, tie-break logic|
+| `fcn-example-autocall-equality.sql`    | Autocall barrier exactly met (boundary condition testing)                            | Final level = `initial × knock_out_barrier_pct` (exact match)                | BR-020, BR-021, boundary test  |
 
-**Status**: Scripts are currently placeholders. Implementation will follow this README once approved.
+**Status**: The fcn-sample-product-insertion.sql script is implemented and demonstrates the complete workflow. Other payoff scenario scripts are placeholders for future development.
 
 ## 6. Execution Workflow (DEV/SANDBOX)
 
@@ -309,6 +312,6 @@ For questions, issues, or enhancement requests:
 
 ---
 
-**Document Version**: 1.0.1  
+**Document Version**: 1.0.2  
 **Last Updated**: 2025-10-16  
 **Next Review**: 2026-04-16
