@@ -2,6 +2,7 @@
 title: Fixed Coupon Note (FCN) Specification v1.1.0
 doc_type: product-spec
 status: Draft
+spec_version: 1.1.0
 version: 1.1.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
