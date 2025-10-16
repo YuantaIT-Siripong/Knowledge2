@@ -166,8 +166,8 @@
     },
     "recovery_mode": {
       "type": "string",
-      "enum": ["par-recovery", "proportional-loss"],
-      "description": "Post knock-in payoff mode: par-recovery (100% notional) or proportional-loss (worst performance)"
+      "enum": ["par-recovery", "proportional-loss", "capital-at-risk"],
+      "description": "Post knock-in payoff mode: par-recovery (100% notional per BR-011 legacy), proportional-loss (worst performance), or capital-at-risk (physical settlement with put strike per BR-025 and BR-025A)"
     },
     "settlement_type": {
       "type": "string",

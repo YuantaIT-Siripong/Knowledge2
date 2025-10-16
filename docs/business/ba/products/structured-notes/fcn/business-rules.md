@@ -2,7 +2,7 @@
 title: FCN v1.1 Business Rules
 doc_type: business-rule
 status: Draft
-version: 1.1.2
+version: 1.1.3
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-10
@@ -59,26 +59,28 @@ Defines the authoritative rule set for FCN v1.1: validation, lifecycle logic, ca
 | BR-018 | Governance | Structural schema change requires new product version (alias policy) | ADR-004 / SA | P1 | Draft | Yes |
 | BR-019 | Validation (Precision) | `notional_amount` precision policy (currency scale) | DEC-011 + Spec §3 / SA | P0 | Draft | Yes |
 | BR-020 | Validation | `0 < knock_out_barrier_pct <= 1.30` when present | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
-| BR-021 | Autocall Logic | Autocall: ALL underlyings ≥ `initial × knock_out_barrier_pct` → early redemption (principal + due coupon) | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
+| BR-021 | Autocall Logic | Autocall triggers when ALL underlyings close ≥ `initial × knock_out_barrier_pct` (equality triggers) → early redemption (principal + due coupon) | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
 | BR-022 | Governance (Issuer) | `issuer` must exist in approved issuer whitelist | Spec v1.1.0 §3 / BA | P1 | Draft | Yes |
 | BR-023 | Business Logic | Autocall precedence before coupon / KI; coupon condition independent of KO barrier | Spec v1.1.0 §4 / BA | P0 | Draft | Yes |
 | BR-024 | Validation | `0 < put_strike_pct ≤ 1.0` and `knock_in_barrier_pct < put_strike_pct` | Spec v1.1.0 §3 / BA | P0 | Draft | Yes |
 | BR-025 | Settlement (Capital-at-Risk) | Maturity: if KI AND worst_of_final_ratio < put_strike_pct → proportional loss; else par redemption | Spec v1.1.0 §5 / BA | P0 | Draft | Yes |
+| BR-025A | Settlement (Physical Worst-of) | Physical settlement mechanics: IF settlement_type=physical-settlement AND recovery_mode=capital-at-risk AND loss condition triggered: share_count_worst = floor(notional / (initial_level_worst × put_strike_pct)); residual_cash = notional - share_count_worst × initial_level_worst × put_strike_pct; residual paid separately if ≥ minimum_cash_dust_threshold else added to final coupon | Spec v1.1.0 §5 / BA | P0 | Draft | Yes |
 | BR-026 | Validation / Monitoring | `barrier_monitoring_type` in ['discrete','continuous']; only 'discrete' normative v1.1 | Spec v1.1.0 §3 | P1 | Draft | Yes |
 
 ### 3.1 Notes
 - BR-011 deprecated and excluded from normative coverage metrics (legacy v1.0 trades only).
 - BR-024–026 introduce capital-at-risk settlement & monitoring extensibility.
+- BR-025A defines physical settlement share delivery mechanics for capital-at-risk mode with strike-cost calculation.
 - Continuous monitoring reserved (non-normative) until future version (target v1.2+).
 
 ## 4. Rule Categories
 - **Validation**: BR-001–004, 014, 015, 019, 020, 024, 026
 - **Business Logic**: BR-005–010, 013, 021, 023, 025 (BR-011 deprecated, BR-012 non-norm)
+- **Settlement & Capital-at-Risk**: BR-024, BR-025, BR-025A, BR-026
 - **Data Integrity**: BR-016
 - **Governance**: BR-017–018, 022
 - **Precision**: BR-019
 - **Autocall**: BR-021, BR-023
-- **Capital-at-Risk**: BR-024, BR-025, BR-026
 
 ## 5. Implementation Mapping
 (unchanged from previous version – updated to include put_strike_pct & barrier_monitoring_type.)
@@ -108,6 +110,7 @@ Canonical parameter: `notional_amount`; capital-at-risk threshold: `put_strike_p
 | 1.1.0 | 2025-10-16 | copilot | Added BR-020–BR-023 (autocall, issuer, precedence) |
 | 1.1.1 | 2025-10-16 | copilot | Added BR-024–BR-026 (capital-at-risk, monitoring); deprecated BR-011; front matter alignment fix |
 | 1.1.2 | 2025-10-16 | copilot | Documentation adjustments: updated schema description, deprecated barrier_monitoring field, integrated activation checklist reference, added alias register reference; no rule logic changes |
+| 1.1.3 | 2025-10-16 | copilot | Added BR-025A (physical worst-of settlement mechanics with share_count_worst formula); updated BR-021 to explicitly state equality triggers (≥); added capital-at-risk to recovery_mode enum; updated rule categories to include Settlement & Capital-at-Risk |
 
 ## 11. References
 - [FCN v1.0 Specification](specs/fcn-v1.0.md)
