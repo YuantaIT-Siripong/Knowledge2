@@ -1,17 +1,17 @@
 ---
 title: Fixed Coupon Note (FCN) Specification v1.1.0
 doc_type: product-spec
-status: Draft
+status: Active
 spec_version: 1.1.0
 version: 1.1.0
 supersedes: fcn-v1.0.md
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-16
-last_reviewed: 2025-10-16
+last_reviewed: 2025-10-17
 next_review: 2026-04-16
 classification: Internal
-tags: [structured-notes, fcn, product-spec, v1.1, autocall, issuer]
+tags: [structured-notes, fcn, product-spec, v1.1, autocall, issuer, capital-at-risk, active]
 related:
   - ../non-functional.md
   - ../er-fcn-v1.0.md
@@ -22,16 +22,23 @@ related:
   - ../../../sa/design-decisions/adr-002-product-doc-structure.md
   - ../../../sa/design-decisions/adr-003-fcn-version-activation.md
   - ../../../sa/design-decisions/adr-004-parameter-alias-policy.md
+  - ../../../sa/design-decisions/adr-005-fcn-supersession-governance.md
   - fcn-v1.0.md
   - ../schema-diff-v1.0-to-v1.1.md
-activation_checklist_issue: TBD
+  - SUPERSEDED_INDEX.md
+activation_checklist_issue: https://github.com/YuantaIT-Siripong/Knowledge2/issues/activation-checklist-v1.1.0
 normative_test_vector_set:
-  - fcn-v1.1.0-nomem-autocall-baseline
-  - fcn-v1.1.0-nomem-autocall-trigger
-  - fcn-v1.1.0-nomem-autocall-no-trigger-edge
+  - fcn-v1.1-caprisk-nomem-baseline
+  - fcn-v1.1-caprisk-nomem-ki-loss
+  - fcn-v1.1-caprisk-nomem-ki-no-loss
+  - fcn-v1.1-autocall-trigger
+  - fcn-v1.1-autocall-near-miss
+  - fcn-v1.1-caprisk-nomem-autocall-preempt
 ---
 
-# Fixed Coupon Note (FCN) – Specification v1.1.0 (Autocall & Issuer Support)
+# Fixed Coupon Note (FCN) – Specification v1.1.0 (Active)
+
+> **✅ ACTIVE SPECIFICATION**: This is the normative FCN specification for all new trades as of 2025-10-17. This version supersedes [fcn-v1.0.md](fcn-v1.0.md). See [SUPERSEDED_INDEX.md](SUPERSEDED_INDEX.md) for governance details.
 
 ## 1. Overview
 
@@ -241,6 +248,7 @@ See [schema-diff-v1.0-to-v1.1.md](../schema-diff-v1.0-to-v1.1.md) for detailed m
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.1.0 | 2025-10-16 | siripong.s | Initial draft: added autocall (knock-out barrier), issuer parameter, observation frequency helper; documented payoff precedence order; added scenario illustrations and test vector placeholders |
+| 1.1.0 | 2025-10-17 | siripong.s | Activated: Marked as Active specification; updated test vector references to capital-at-risk normative set; added ADR-005 reference; updated normative status banner |
 
 ## 10. References
 
