@@ -2,8 +2,8 @@
 title: FCN Specification Supersession Governance
 doc_type: decision-record
 adr: 005
-status: Draft
-version: 0.1.0
+status: Accepted
+version: 0.2.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-17
@@ -252,3 +252,4 @@ This ADR establishes the governance framework for declaring a specification vers
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 0.1.0 | 2025-10-17 | siripong.s@yuanta.co.th | Initial draft documenting formal supersession criteria, process steps, lifecycle flowchart, automation hooks, and governance enforcement mechanisms |
+| 0.2.0 | 2025-10-17 | siripong.s@yuanta.co.th | Accepted; governance framework operational with v1.0 supersession executed; SUPERSEDED_INDEX.md in place; automation hooks and enforcement mechanisms defined |

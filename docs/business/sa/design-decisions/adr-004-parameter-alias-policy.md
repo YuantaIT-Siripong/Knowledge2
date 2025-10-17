@@ -2,8 +2,8 @@
 title: Parameter Alias & Deprecation Policy (Structured Notes)
 doc_type: decision-record
 adr: 004
-status: Draft
-version: 0.1.1
+status: Accepted
+version: 0.2.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
@@ -75,3 +75,4 @@ These candidates will be evaluated under the 4-stage lifecycle defined in this A
 |---------|------|--------|--------|
 | 0.1.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial draft |
 | 0.1.1 | 2025-10-17 | siripong.s@yuanta.co.th | Added Current Alias Inventory section documenting no active aliases; noted settlement_type harmonization without alias stage; identified future alias candidates (mixed settlement, barrier monitoring continuous mode, coupon memory variants); clarified Phase 1 linter task |
+| 0.2.0 | 2025-10-17 | siripong.s@yuanta.co.th | Accepted; policy framework established with 4-stage lifecycle, enforcement phases, and future candidate identification |

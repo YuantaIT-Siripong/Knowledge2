@@ -4,20 +4,30 @@ doc_type: architecture
 role_primary: SA
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
-status: Draft
-version: 0.1.0
+status: Superseded
+version: 0.2.0
 created: 2025-10-10
-last_reviewed: 2025-10-10
+last_reviewed: 2025-10-17
 next_review: 2026-04-10
 classification: Internal
-tags: [architecture, logical, fcn, structured-notes, components]
+tags: [architecture, logical, fcn, structured-notes, components, superseded]
 related:
   - ../context/fcn-v1.0-context-view.md
   - ../../handoff/domain-handoff-fcn-v1.0.md
   - ../../../ba/products/structured-notes/fcn/specs/fcn-v1.0.md
+  - ../../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md
+  - ../../design-decisions/adr-005-fcn-supersession-governance.md
 ---
 
 # FCN v1.0 Logical Architecture View
+
+> **⚠️ SUPERSEDED**: This architecture view is based on FCN v1.0 specification, which was superseded on 2025-10-17 by [fcn-v1.1.0](../../../ba/products/structured-notes/fcn/specs/fcn-v1.1.0.md).
+> 
+> **Status**: This document is retained for historical reference and existing v1.0 trade implementations only. New implementations should refer to FCN v1.1.0 documentation.
+> 
+> **Key Changes in v1.1.0**: Capital-at-risk settlement, autocall/knock-out capability, issuer governance, and barrier monitoring type.
+> 
+> See [SUPERSEDED_INDEX.md](../../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md) and [ADR-005](../../design-decisions/adr-005-fcn-supersession-governance.md) for supersession governance details.
 
 ## 1. Context
 
@@ -423,3 +433,4 @@ Key design decisions:
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 0.1.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial logical view for FCN v1.0 |
+| 0.2.0 | 2025-10-17 | siripong.s@yuanta.co.th | Marked as Superseded; added supersession notice referencing FCN v1.1.0, SUPERSEDED_INDEX.md, and ADR-005 |

@@ -1,16 +1,17 @@
 ---
 title: FCN Schema Diff - v1.0 to v1.1
 doc_type: technical-diff
-status: Draft
-version: 1.0.1
+status: Active
+version: 1.0.2
 owner: siripong.s@yuanta.co.th
 created: 2025-10-16
-last_reviewed: 2025-10-16
+last_reviewed: 2025-10-17
 classification: Internal
-tags: [fcn, schema-diff, migration, v1.1, capital-at-risk]
+tags: [fcn, schema-diff, migration, v1.1, capital-at-risk, active]
 related:
   - specs/fcn-v1.0.md
   - specs/fcn-v1.1.0.md
+  - specs/SUPERSEDED_INDEX.md
   - business-rules.md
   - manifest.yaml
   - migrations/m0002-fcn-v1_1-autocall-extension.sql
@@ -462,7 +463,8 @@ v1.0 trades can be "upgraded" to v1.1.0 semantic by:
 |---------|------|--------|---------|
 | 1.0.0 | 2025-10-16 | siripong.s | Initial schema diff document for v1.0 to v1.1 migration |
 | 1.0.1 | 2025-10-16 | copilot | Enhanced with capital-at-risk parameters (put_strike_pct, barrier_monitoring_type); added BR-024–026; updated settlement logic; deprecated BR-011 and redemption_barrier_pct; added m0003 migration; extended test vector list |
-| 1.0.2 | 2025-10-17 | copilot | Formal supersession recorded (v1.0 -> Superseded; v1.1.0 normative). Added Supersession Statement section. |
+| 1.0.2 | 2025-10-17 | siripong.s@yuanta.co.th | Formal supersession recorded (v1.0 -> Superseded; v1.1.0 normative). Added Supersession Statement section. |
+| 1.0.2 | 2025-10-17 | siripong.s@yuanta.co.th | Activated: Marked as Active status; added SUPERSEDED_INDEX.md reference |
 
 ## 11. References
 
