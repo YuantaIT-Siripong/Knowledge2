@@ -4,25 +4,35 @@ doc_type: architecture
 role_primary: SA
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
-status: Draft
-version: 1.0.2
+status: Superseded
+version: 1.1.0
 created: 2025-10-10
-last_reviewed: 2025-10-10
+last_reviewed: 2025-10-17
 next_review: 2026-04-10
 classification: Internal
-tags: [fcn, handoff, domain-model, architecture, structured-notes]
+tags: [fcn, handoff, domain-model, architecture, structured-notes, superseded]
 related:
   - ../../ba/products/structured-notes/fcn/specs/fcn-v1.0.md
+  - ../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md
   - ../../ba/products/structured-notes/fcn/non-functional.md
   - ../../ba/products/structured-notes/fcn/er-fcn-v1.0.md
   - ../../ba/products/structured-notes/fcn/manifest.yaml
   - ../design-decisions/adr-002-product-doc-structure.md
   - ../design-decisions/adr-003-fcn-version-activation.md
   - ../design-decisions/adr-004-parameter-alias-policy.md
+  - ../design-decisions/adr-005-fcn-supersession-governance.md
   - ../design-decisions/dec-011-notional-precision.md
 ---
 
 # FCN v1.0 Domain Handoff Package
+
+> **⚠️ SUPERSEDED**: This handoff package is based on FCN v1.0 specification, which was superseded on 2025-10-17 by [fcn-v1.1.0](../../ba/products/structured-notes/fcn/specs/fcn-v1.1.0.md).
+> 
+> **Status**: This document is retained for historical reference and existing v1.0 trade implementations only. New implementations should refer to FCN v1.1.0 documentation.
+> 
+> **Key Changes in v1.1.0**: Capital-at-risk settlement (put_strike_pct, BR-024, BR-025), autocall/knock-out capability (knock_out_barrier_pct, auto_call_observation_logic, BR-020, BR-021, BR-023), issuer governance (issuer parameter, BR-022), barrier monitoring type (barrier_monitoring_type, BR-026), and deprecation of unconditional par recovery (BR-011).
+> 
+> See [SUPERSEDED_INDEX.md](../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md), [schema-diff-v1.0-to-v1.1.md](../../ba/products/structured-notes/fcn/schema-diff-v1.0-to-v1.1.md), and [ADR-005](../design-decisions/adr-005-fcn-supersession-governance.md) for migration guidance and supersession governance details.
 
 ## 1. Overview and Scope
 
@@ -286,6 +296,7 @@ Canonical parameter keys: `notional_amount`, `coupon_condition_threshold_pct`. I
 | 1.0.0 | 2025-10-10 | siripong.s@yuanta.co.th | Initial handoff package creation with all required sections |
 | 1.0.1 | 2025-10-10 | copilot | Added DEC-011 for notional precision, BR-019 validation rule, resolved RQ-001 open question |
 | 1.0.2 | 2025-10-10 | copilot | Hygiene: canonical notional_amount & coupon_condition_threshold_pct naming; BR-009 formula alignment; checklist updates; added DEC-011 to related |
+| 1.1.0 | 2025-10-17 | siripong.s@yuanta.co.th | Marked as Superseded; added supersession notice with v1.1.0 key changes summary; linked SUPERSEDED_INDEX.md, schema-diff, and ADR-005 |
 
 ## 14. Appendices
 
