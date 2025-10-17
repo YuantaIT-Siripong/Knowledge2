@@ -2,12 +2,12 @@
 title: Product Documentation Structure & Location
 doc_type: decision-record
 adr: 002
-status: Draft
-version: 0.1.0
+status: Accepted
+version: 0.2.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
-last_reviewed: 2025-10-09
+last_reviewed: 2025-10-17
 next_review: 2026-04-09
 classification: Internal
 tags: [architecture, decision, documentation, products]
@@ -58,12 +58,22 @@ products/structured-notes/fcn/lifecycle/
 products/structured-notes/fcn/cases/
 ```
 
+**Current Implementation**: The FCN canonical directory is located at `docs/business/ba/products/structured-notes/fcn/` and includes:
+- Normative specifications under `specs/` (fcn-v1.1.0.md, fcn-v1.0.md)
+- Supersession tracking via `specs/SUPERSEDED_INDEX.md`
+- Schema migration documentation (schema-diff-v1.0-to-v1.1.md)
+- Test vectors, lifecycle documentation, and examples as defined
+
+This structure supports version governance and ensures clear separation between Active and Superseded specifications.
+
 ## Follow-up Tasks
 - [ ] Update tagging schema (doc_type list)
 - [ ] Extend metadata validator (new doc_types)
-- [ ] Import FCN baseline spec & examples
+- [x] Import FCN baseline spec & examples (completed: fcn-v1.0.md, fcn-v1.1.0.md)
+- [ ] Add CI enforcement rule to prevent new usage of superseded specifications (TODO: CI validation to reject references to fcn-v1.0.md in new templates or migrations)
 
 ## Change Log
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 0.1.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial draft |
+| 0.2.0 | 2025-10-17 | siripong.s@yuanta.co.th | Accepted; added note on canonical FCN directory with supersession index; marked imported baseline spec as done; added CI enforcement task for superseded spec usage prevention |

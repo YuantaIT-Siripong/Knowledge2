@@ -3,11 +3,11 @@ title: Parameter Alias & Deprecation Policy (Structured Notes)
 doc_type: decision-record
 adr: 004
 status: Draft
-version: 0.1.0
+version: 0.1.1
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
-last_reviewed: 2025-10-09
+last_reviewed: 2025-10-17
 next_review: 2026-04-09
 classification: Internal
 tags: [decision, naming, products, governance]
@@ -51,10 +51,27 @@ Automation phases:
 
 ## Follow-up Tasks
 - [ ] Add alias mapping section to conventions file.
-- [ ] Implement alias linter (Phase 1).
+- [ ] Implement alias linter (Phase 1) — TODO: CI validation to detect legacy parameter usage without deprecation notice banner.
 - [ ] Add spec checklist item “Alias Table present if any alias active.”
+
+
+## Current Alias Inventory
+
+**Status as of 2025-10-17**: No active parameter aliases currently deployed in FCN specifications.
+
+**Historical Context**:
+- The `settlement_type` parameter underwent harmonization from v1.0 to v1.1.0 with canonical value alignment (e.g., `physical-settlement`, `cash-settlement`) but did NOT require an intermediate alias stage. The change was backward-compatible through value normalization.
+
+**Future Candidates**:
+The following parameter scenarios may require alias management in future versions:
+1. **Mixed settlement semantics**: If v1.2+ introduces hybrid settlement modes that blend physical and cash mechanics, a transitional alias may be needed.
+2. **Barrier monitoring type activation**: When `barrier_monitoring_type='continuous'` becomes normative (currently reserved in v1.1.0), documentation may require an alias phase to differentiate from implicit discrete-only behavior in v1.0.
+3. **Coupon memory logic variants**: If memory accumulation logic diversifies (e.g., partial memory, capped memory), legacy `is_memory_coupon` boolean may need alias to structured enum.
+
+These candidates will be evaluated under the 4-stage lifecycle defined in this ADR if/when introduced.
 
 ## Change Log
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 0.1.0 | 2025-10-09 | siripong.s@yuanta.co.th | Initial draft |
+| 0.1.1 | 2025-10-17 | siripong.s@yuanta.co.th | Added Current Alias Inventory section documenting no active aliases; noted settlement_type harmonization without alias stage; identified future alias candidates (mixed settlement, barrier monitoring continuous mode, coupon memory variants); clarified Phase 1 linter task |
