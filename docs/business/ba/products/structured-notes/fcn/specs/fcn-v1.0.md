@@ -1,8 +1,11 @@
 ---
 title: Fixed Coupon Note (FCN) Specification v1.0
 doc_type: product-spec
-status: Draft
+status: Superseded
 version: 1.0.0
+superseded_by: fcn-v1.1.0.md
+deprecation_date: 2025-10-17
+lifecycle: historical
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
@@ -29,7 +32,15 @@ normative_test_vector_set:
   - N5
 ---
 
+> **NOTE**: This v1.0 specification is retained for historical reference only. All new FCN templates, trades, and migrations MUST use v1.1.0 or later. Do not introduce new trades referencing documentation_version '1.0.0' after 2025-10-17 without explicit governance approval.
+
 # Fixed Coupon Note (FCN) – Baseline Specification (v1.0)
+
+## Supersession Note
+
+**As of 2025-10-17**, this v1.0 specification has been superseded by v1.1.0. All new FCN trades, templates, and migrations must use v1.1.0 or later. This document is retained for historical reference and audit purposes only.
+
+For details on the changes between v1.0 and v1.1.0, see [schema-diff-v1.0-to-v1.1.md](../schema-diff-v1.0-to-v1.1.md).
 
 (… unchanged sections above parameter table …)
 
