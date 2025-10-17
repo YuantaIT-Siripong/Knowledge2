@@ -560,7 +560,7 @@ BEGIN
     CREATE TABLE fcn_settlement (
         settlement_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
         trade_id UNIQUEIDENTIFIER NOT NULL,
-        settlement_type NVARCHAR(50) NOT NULL CHECK (settlement_type IN ('cash', 'physical', 'mixed')),
+        settlement_type NVARCHAR(50) NOT NULL CONSTRAINT chk_fcn_settlement_type_canonical CHECK (settlement_type IN ('cash-settlement', 'physical-settlement')),
         settlement_date DATE NOT NULL,
         settlement_status NVARCHAR(20) NOT NULL CHECK (settlement_status IN ('pending', 'confirmed', 'completed')) DEFAULT 'pending',
         
@@ -586,10 +586,11 @@ BEGIN
     CREATE INDEX idx_fcn_settlement_trade ON fcn_settlement(trade_id);
     CREATE INDEX idx_fcn_settlement_date ON fcn_settlement(settlement_date);
     CREATE INDEX idx_fcn_settlement_status ON fcn_settlement(settlement_status);
+    CREATE INDEX idx_fcn_settlement_type ON fcn_settlement(settlement_type);
     
     EXEC sys.sp_addextendedproperty 
         @name = N'MS_Description',
-        @value = N'Settlement tracking for FCN trades (cash or physical delivery)',
+        @value = N'Settlement tracking for FCN trades (cash-settlement or physical-settlement)',
         @level0type = N'SCHEMA', @level0name = N'dbo',
         @level1type = N'TABLE', @level1name = N'fcn_settlement';
     
