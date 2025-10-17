@@ -2,17 +2,19 @@
 title: Product Documentation Structure & Location
 doc_type: decision-record
 adr: 002
-status: Draft
+status: Accepted
 version: 0.1.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
-last_reviewed: 2025-10-09
+last_reviewed: 2025-10-17
+decision_date: 2025-10-17
 next_review: 2026-04-09
 classification: Internal
-tags: [architecture, decision, documentation, products]
+tags: [architecture, decision, documentation, products, governance, versioning]
 related:
   - ../../../../_policies/tagging-schema.md
+  - ../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md
 ---
 
 # Product Documentation Structure & Location
@@ -56,7 +58,15 @@ products/structured-notes/fcn/examples/
 products/structured-notes/fcn/test-vectors/
 products/structured-notes/fcn/lifecycle/
 products/structured-notes/fcn/cases/
+products/structured-notes/fcn/migrations/
 ```
+
+Lifecycle artifacts include:
+- **Supersession Index** (`SUPERSEDED_INDEX.md`): Tracks superseded specification versions for historical reference and audit purposes. Maintained in specs/ directory alongside active specifications.
+- **Migration Scripts**: Version upgrade scripts and data harmonization utilities reside under `migrations/` subdirectory.
+- **Diagnostic Views**: Schema diffs and validation reports stored under product schema directory for traceability.
+
+See [SUPERSEDED_INDEX.md](../../ba/products/structured-notes/fcn/specs/SUPERSEDED_INDEX.md) for FCN specification lifecycle tracking.
 
 ## Follow-up Tasks
 - [ ] Update tagging schema (doc_type list)

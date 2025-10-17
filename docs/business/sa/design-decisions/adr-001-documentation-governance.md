@@ -2,12 +2,13 @@
 title: Documentation Governance Approach
 doc_type: decision-record
 adr: 001
-status: Draft
+status: Accepted
 version: 0.1.0
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-09
-last_reviewed: 2025-10-09
+last_reviewed: 2025-10-17
+decision_date: 2025-10-17
 next_review: 2026-10-09
 classification: Internal
 tags: [architecture, decision, governance]
