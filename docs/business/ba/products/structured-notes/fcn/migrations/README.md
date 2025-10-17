@@ -27,6 +27,16 @@ This directory contains database migration scripts for the Fixed Coupon Note (FC
   - Idempotent and safe to run multiple times
   - **When to apply**: If you have an existing database with fcn_settlement data using old values ('cash', 'physical', 'mixed')
 
+- **`fcn_patch_trade_settlement_consistency_view.sql`** (Patch 1.1.2) - Trade-settlement consistency diagnostic
+  - Creates view `v_fcn_trade_settlement_consistency` for monitoring settlement data quality
+  - Creates procedure `usp_FCN_ListSettlementInconsistencies` to list problem cases
+  - Detects mismatches between trade and settlement settlement_type values
+  - Identifies missing settlements after maturity date
+  - Flags lifecycle expectation violations (recovery_mode, physical settlement, KI triggers)
+  - Idempotent and safe to run multiple times
+  - **When to apply**: For monitoring and diagnostics on databases with fcn_schema_consolidated_v1_1.sql
+  - **Requires**: fcn_patch_settlement_type_alignment.sql (PR #55) for canonical settlement_type values
+
 ## Template Layer Enhancements (SQL Server)
 
 The `sqlserver/` subdirectory contains additional migrations for the template layer:
@@ -87,6 +97,28 @@ The legacy incremental migrations (m0001–m0004) were consolidated into a singl
 
 ## Patch History
 
+### Patch 1.1.2 - Trade-Settlement Consistency Diagnostic (2025-10-17)
+
+**Objective**: Create monitoring capabilities to detect mismatches and inconsistencies between trade-level and settlement-level canonical fields after PR #55 settlement type alignment.
+
+**Scope**:
+- View `v_fcn_trade_settlement_consistency` surfaces diagnostic data including:
+  - Settlement presence flag
+  - Settlement type mismatch detection (trade vs settlement)
+  - Recovery mode tracking
+  - Physical settlement expectation flags
+  - KI trigger expectation vs actual comparison
+  - Maturity date tracking and settlement missing flags
+- Stored procedure `usp_FCN_ListSettlementInconsistencies` returns only problem rows
+
+**Benefits**:
+- Early detection of data quality issues
+- Monitoring settlement lifecycle compliance
+- Support for operational review and reconciliation
+
+**Files Added**:
+- `fcn_patch_trade_settlement_consistency_view.sql` - New diagnostic view and procedure
+
 ### Patch 1.1.1 - Settlement Type Alignment (2025-10-17)
 
 **Issue**: After PR #54 consolidation, fcn_settlement.settlement_type used non-canonical values ('cash', 'physical', 'mixed'), conflicting with fcn_template and fcn_trade which use canonical values ('cash-settlement', 'physical-settlement').
@@ -135,6 +167,21 @@ WHERE parent_object_id = OBJECT_ID('dbo.fcn_template')
   AND parent_column_id = (SELECT column_id FROM sys.columns 
                           WHERE object_id = OBJECT_ID('dbo.fcn_template') 
                           AND name = 'recovery_mode');
+
+-- Test trade-settlement consistency view (Patch 1.1.2)
+SELECT TOP 20 * FROM v_fcn_trade_settlement_consistency 
+ORDER BY settlement_missing_after_maturity_flag DESC;
+
+-- List only inconsistencies (Patch 1.1.2)
+EXEC usp_FCN_ListSettlementInconsistencies;
+
+-- Find trades with settlement type mismatches (Patch 1.1.2)
+SELECT * FROM v_fcn_trade_settlement_consistency 
+WHERE mismatch_settlement_type_flag = 1;
+
+-- Find trades missing settlements after maturity (Patch 1.1.2)
+SELECT * FROM v_fcn_trade_settlement_consistency 
+WHERE settlement_missing_after_maturity_flag = 1;
 ```
 
 ## Support
