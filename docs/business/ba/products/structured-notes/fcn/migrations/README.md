@@ -14,6 +14,19 @@ This directory contains database migration scripts for the Fixed Coupon Note (FC
   - Idempotent (safe to run multiple times)
   - Consolidates all functionality from legacy migrations m0001–m0004
 
+## Patch Migrations
+
+**Apply after consolidated schema if needed:**
+
+- **`fcn_patch_settlement_type_alignment.sql`** (Patch 1.1.1) - Settlement type naming alignment
+  - Fixes settlement_type divergence in fcn_settlement table
+  - Migrates legacy values: 'cash' → 'cash-settlement', 'physical' → 'physical-settlement'
+  - Handles 'mixed' values with deterministic mapping based on share delivery fields
+  - Updates constraint to canonical values only
+  - Adds index on settlement_type for better query performance
+  - Idempotent and safe to run multiple times
+  - **When to apply**: If you have an existing database with fcn_settlement data using old values ('cash', 'physical', 'mixed')
+
 ## Template Layer Enhancements (SQL Server)
 
 The `sqlserver/` subdirectory contains additional migrations for the template layer:
@@ -53,6 +66,15 @@ If your environment already has FCN tables from legacy migrations:
 - Continue using incremental migrations if already applied
 - Consider migrating to the consolidated schema in a future maintenance window
 
+### For Databases with Settlement Type Divergence
+
+If your database was deployed with the consolidated schema before Patch 1.1.1:
+
+1. Verify if patch is needed: `SELECT DISTINCT settlement_type FROM fcn_settlement;`
+2. If you see 'cash', 'physical', or 'mixed' values, apply `fcn_patch_settlement_type_alignment.sql`
+3. The patch will automatically migrate data and update constraints
+4. Re-verify after patch: all values should be 'cash-settlement' or 'physical-settlement'
+
 ## Consolidation Rationale
 
 The legacy incremental migrations (m0001–m0004) were consolidated into a single authoritative schema file for the following reasons:
@@ -62,6 +84,28 @@ The legacy incremental migrations (m0001–m0004) were consolidated into a singl
 3. **Reduced Maintenance** - One file to update instead of tracking changes across multiple files
 4. **Clear Defaults** - Explicit defaults for recovery_mode and settlement_type
 5. **Complete Validation** - All business rules enforced through constraints and procedures
+
+## Patch History
+
+### Patch 1.1.1 - Settlement Type Alignment (2025-10-17)
+
+**Issue**: After PR #54 consolidation, fcn_settlement.settlement_type used non-canonical values ('cash', 'physical', 'mixed'), conflicting with fcn_template and fcn_trade which use canonical values ('cash-settlement', 'physical-settlement').
+
+**Impact**: 
+- Breaks joins between settlement and trade/template layers
+- Inconsistent analytics queries
+- Validation assumption violations
+
+**Resolution**: 
+- Updated consolidated schema to use canonical constraint in fcn_settlement
+- Created idempotent patch migration to migrate existing data
+- Added deterministic mapping for 'mixed' values based on share delivery fields
+- Added index on settlement_type for performance
+- Standardized constraint name: chk_fcn_settlement_type_canonical
+
+**Files Changed**:
+- `fcn_schema_consolidated_v1_1.sql` - Fixed fcn_settlement constraint
+- `fcn_patch_settlement_type_alignment.sql` - New patch migration for existing databases
 
 ## Harmonized Naming Conventions
 
