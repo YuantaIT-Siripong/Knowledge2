@@ -4,6 +4,7 @@ doc_type: product-spec
 status: Draft
 spec_version: 1.1.0
 version: 1.1.0
+supersedes: fcn-v1.0.md
 owner: siripong.s@yuanta.co.th
 approver: siripong.s@yuanta.co.th
 created: 2025-10-16
@@ -33,6 +34,8 @@ normative_test_vector_set:
 # Fixed Coupon Note (FCN) – Specification v1.1.0 (Autocall & Issuer Support)
 
 ## 1. Overview
+
+This v1.1.0 specification supersedes v1.0 (see Supersession Statement in [schema-diff-v1.0-to-v1.1.md](../schema-diff-v1.0-to-v1.1.md)).
 
 FCN v1.1.0 extends the baseline v1.0 specification with:
 - **Autocall (Knock-Out) Feature**: Early redemption capability when all underlyings exceed a specified barrier level

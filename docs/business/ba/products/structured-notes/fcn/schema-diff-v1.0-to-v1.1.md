@@ -31,6 +31,10 @@ FCN v1.1.0 extends v1.0 with **capital-at-risk settlement**, **autocall (knock-o
 - **Autocall logic**: Configuration for autocall trigger conditions
 - **Observation frequency helper**: Informational field for schedule documentation
 
+## Supersession Statement
+
+As of 2025-10-17, FCN v1.1.0 is the normative specification for all NEW trades. FCN v1.0 is classified as Superseded and retained for historical audit only. Booking or template creation against v1.0 after this date requires explicit governance approval.
+
 ## 1. Parameter Changes
 
 ### 1.1 New Parameters (v1.1.0)
@@ -458,6 +462,7 @@ v1.0 trades can be "upgraded" to v1.1.0 semantic by:
 |---------|------|--------|---------|
 | 1.0.0 | 2025-10-16 | siripong.s | Initial schema diff document for v1.0 to v1.1 migration |
 | 1.0.1 | 2025-10-16 | copilot | Enhanced with capital-at-risk parameters (put_strike_pct, barrier_monitoring_type); added BR-024–026; updated settlement logic; deprecated BR-011 and redemption_barrier_pct; added m0003 migration; extended test vector list |
+| 1.0.2 | 2025-10-17 | copilot | Formal supersession recorded (v1.0 -> Superseded; v1.1.0 normative). Added Supersession Statement section. |
 
 ## 11. References
 
