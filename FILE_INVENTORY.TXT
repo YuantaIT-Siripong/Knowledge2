@@ -81,6 +81,7 @@ docs/business/sa/design-decisions/adr-003-fcn-version-activation.md
 docs/business/sa/design-decisions/adr-004-parameter-alias-policy.md
 docs/business/sa/handoff/domain-handoff-fcn-v1.0.md
 docs/business/sa/interfaces/.gitkeep
+docs/business/sa/interfaces/openapi/fcn-openapi-starter.yaml
 docs/lifecycle/ba-lifecycle.md
 docs/lifecycle/sa-lifecycle.md
 docs/playbooks/contribution-guide.md
