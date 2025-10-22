@@ -1,0 +1,1260 @@
+openapi: 3.0.3
+info:
+  title: FCN (Fixed Coupon Note) API
+  version: 0.1.0
+  description: |
+    Fixed Coupon Note Template, Trade, Observation, and Lifecycle Management API.
+    
+    This specification provides a formal machine-readable contract for FCN operations,
+    enabling client stub generation, contract testing, and automated validation.
+    
+    **Key Features:**
+    - Template management (create, validate, update, deprecate)
+    - Trade lifecycle (create, update, terminate)
+    - Real-time observations and lifecycle event tracking
+    - Comprehensive validation with detailed error codes
+    
+    **Related Documentation:**
+    - fcn-template-api.md - Template endpoint specifications
+    - fcn-trade-api.md - Trade endpoint specifications
+    - fcn-validation-errors.md - Validation error catalog
+    - fcn-common-schemas.md - Common schema definitions
+  contact:
+    name: Yuanta IT Solutions Architecture
+    email: siripong.s@yuanta.co.th
+  license:
+    name: Proprietary
+    url: https://www.yuanta.co.th/terms
+
+servers:
+  - url: https://api.yuanta.co.th/v1
+    description: Production server
+  - url: https://sandbox-api.yuanta.co.th/v1
+    description: Sandbox server for testing
+
+security:
+  - bearerAuth: []
+
+x-governance:
+  spec_version: 0.1.0
+  status: draft
+  active_versions:
+    - 0.1.0
+  superseded_versions: []
+  deprecation_policy: |
+    API versions are supported for minimum 12 months after deprecation notice.
+    Clients must migrate to active versions before end-of-life date.
+
+x-roadmap:
+  future_enhancements:
+    - Add examples section for request/response bodies
+    - Integrate Spectral lint in CI pipeline
+    - Add OAuth2 scopes definition and flows
+    - Add webhook endpoints for event streaming
+    - Add batch operations support
+    - Add GraphQL endpoint alternative
+    - Add rate limit headers documentation
+    - Add pagination links (HATEOAS)
+
+paths:
+  /api/fcn/templates:
+    get:
+      summary: List FCN templates
+      description: Retrieve a paginated list of FCN templates with optional filtering
+      operationId: listTemplates
+      tags:
+        - Templates
+      parameters:
+        - name: status
+          in: query
+          description: Filter by template status
+          schema:
+            type: string
+            enum: [active, deprecated, draft]
+        - name: version
+          in: query
+          description: Filter by specification version
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response with template list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateListResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create a new FCN template
+      description: Create a new FCN template with validation
+      operationId: createTemplate
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateCreateRequest'
+      responses:
+        '201':
+          description: Template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateCreateResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Template update conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/templates/validate:
+    post:
+      summary: Validate FCN template without creating
+      description: Validate a template structure and business rules without persisting
+      operationId: validateTemplate
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateCreateRequest'
+      responses:
+        '200':
+          description: Validation completed (may contain violations)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateValidationResponse'
+        '400':
+          description: Invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/templates/{template_id}:
+    parameters:
+      - $ref: '#/components/parameters/template_id'
+
+    get:
+      summary: Get FCN template by ID
+      description: Retrieve detailed information about a specific template
+      operationId: getTemplate
+      tags:
+        - Templates
+      responses:
+        '200':
+          description: Template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      summary: Update FCN template
+      description: Partially update an existing template
+      operationId: updateTemplate
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpdateRequest'
+      responses:
+        '200':
+          description: Template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Template update conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/templates/{template_id}/deprecate:
+    parameters:
+      - $ref: '#/components/parameters/template_id'
+
+    post:
+      summary: Deprecate FCN template
+      description: Mark a template as deprecated (soft delete)
+      operationId: deprecateTemplate
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for deprecation
+                superseded_by:
+                  type: string
+                  description: ID of the template that supersedes this one
+              required:
+                - reason
+      responses:
+        '200':
+          description: Template deprecated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Template already deprecated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/trades:
+    get:
+      summary: List FCN trades
+      description: Retrieve a paginated list of FCN trades with optional filtering
+      operationId: listTrades
+      tags:
+        - Trades
+      parameters:
+        - name: status
+          in: query
+          description: Filter by trade status
+          schema:
+            type: string
+            enum: [active, terminated, matured, knocked_in, knocked_out]
+        - name: template_id
+          in: query
+          description: Filter by template ID
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response with trade list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeListResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create a new FCN trade
+      description: Create a new trade instance from a template
+      operationId: createTrade
+      tags:
+        - Trades
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeCreateRequest'
+      responses:
+        '201':
+          description: Trade created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeCreateResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/trades/{trade_id}:
+    parameters:
+      - $ref: '#/components/parameters/trade_id'
+
+    get:
+      summary: Get FCN trade by ID
+      description: Retrieve detailed information about a specific trade
+      operationId: getTrade
+      tags:
+        - Trades
+      responses:
+        '200':
+          description: Trade details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      summary: Update FCN trade
+      description: Partially update an existing trade
+      operationId: updateTrade
+      tags:
+        - Trades
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeUpdateRequest'
+      responses:
+        '200':
+          description: Trade updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/trades/{trade_id}/observations:
+    parameters:
+      - $ref: '#/components/parameters/trade_id'
+
+    post:
+      summary: Post observation for trade
+      description: Submit market observation data for a trade
+      operationId: postObservation
+      tags:
+        - Observations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationPostRequest'
+      responses:
+        '201':
+          description: Observation processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationResult'
+        '400':
+          description: Invalid observation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/trades/{trade_id}/lifecycle:
+    parameters:
+      - $ref: '#/components/parameters/trade_id'
+
+    get:
+      summary: Get trade lifecycle events
+      description: Retrieve the complete lifecycle history for a trade
+      operationId: getTradeLifecycle
+      tags:
+        - Lifecycle
+      parameters:
+        - name: event_type
+          in: query
+          description: Filter by event type
+          schema:
+            type: string
+            enum: [created, observation_posted, coupon_paid, knocked_in, knocked_out, terminated, matured]
+        - name: from_date
+          in: query
+          description: Filter events from this date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: to_date
+          in: query
+          description: Filter events until this date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Trade lifecycle events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeLifecycleResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/fcn/trades/{trade_id}/terminate:
+    parameters:
+      - $ref: '#/components/parameters/trade_id'
+
+    post:
+      summary: Terminate FCN trade
+      description: Manually terminate a trade before maturity
+      operationId: terminateTrade
+      tags:
+        - Trades
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for termination
+                  enum: [early_redemption, issuer_call, client_request, regulatory]
+                termination_date:
+                  type: string
+                  format: date
+                  description: Effective termination date
+                settlement_amount:
+                  type: number
+                  format: double
+                  description: Final settlement amount
+              required:
+                - reason
+                - termination_date
+      responses:
+        '200':
+          description: Trade terminated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Trade already terminated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable entity - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT-based authentication. Include token in Authorization header as 'Bearer <token>'
+
+  parameters:
+    template_id:
+      name: template_id
+      in: path
+      required: true
+      description: Unique identifier for the FCN template
+      schema:
+        type: string
+        format: uuid
+
+    trade_id:
+      name: trade_id
+      in: path
+      required: true
+      description: Unique identifier for the FCN trade
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid/expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimitExceeded:
+      description: Too many requests - rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    TemplateCreateRequest:
+      type: object
+      required:
+        - name
+        - spec_version
+        - issuer
+        - underlying_assets
+        - strike_levels
+        - barrier_level
+        - coupon_rate
+        - observation_frequency
+        - maturity_years
+      properties:
+        name:
+          type: string
+          description: Human-readable template name
+          minLength: 1
+          maxLength: 200
+        spec_version:
+          type: string
+          description: FCN specification version (e.g., 1.0, 1.1.0)
+          pattern: '^\d+\.\d+(\.\d+)?$'
+        issuer:
+          type: string
+          description: Issuer identifier from approved whitelist
+          minLength: 1
+        underlying_assets:
+          type: array
+          description: List of underlying assets
+          minItems: 1
+          items:
+            type: object
+            properties:
+              ticker:
+                type: string
+              weight:
+                type: number
+                format: double
+                minimum: 0
+                maximum: 1
+        strike_levels:
+          type: array
+          description: Strike price levels (must be in descending order)
+          minItems: 1
+          items:
+            type: number
+            format: double
+            minimum: 0
+            maximum: 1
+        barrier_level:
+          type: number
+          format: double
+          description: Barrier level as percentage of initial
+          minimum: 0
+          maximum: 1
+        put_strike_pct:
+          type: number
+          format: double
+          description: Put strike percentage for capital-at-risk settlement (v1.1+)
+          minimum: 0
+          maximum: 1
+        knock_out_level:
+          type: number
+          format: double
+          description: Knock-out (autocall) barrier level (v1.1+)
+          minimum: 0
+          maximum: 2
+        coupon_rate:
+          type: number
+          format: double
+          description: Coupon rate per observation period
+          minimum: 0
+        observation_frequency:
+          type: string
+          description: Observation frequency
+          enum: [monthly, quarterly, semi-annual, annual]
+        maturity_years:
+          type: number
+          format: double
+          description: Maturity in years
+          minimum: 0.25
+          maximum: 10
+        coupon_memory:
+          type: boolean
+          description: Whether coupon has memory feature
+          default: false
+        barrier_monitoring_type:
+          type: string
+          description: Type of barrier monitoring (v1.1+)
+          enum: [discrete, continuous]
+          default: discrete
+        settlement_type:
+          type: string
+          description: Settlement type
+          enum: [physical, cash]
+          default: physical
+        recovery_mode:
+          type: string
+          description: Capital recovery mode (v1.1+)
+          enum: [par-recovery, proportional-loss, capital-at-risk]
+          default: par-recovery
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+
+    TemplateUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        metadata:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, deprecated, draft]
+
+    TemplateCreateResponse:
+      type: object
+      required:
+        - template_id
+        - status
+        - created_at
+      properties:
+        template_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, draft]
+        created_at:
+          type: string
+          format: date-time
+        validation_result:
+          $ref: '#/components/schemas/TemplateValidationResponse'
+
+    TemplateValidationResponse:
+      type: object
+      required:
+        - is_valid
+        - violations
+      properties:
+        is_valid:
+          type: boolean
+          description: Whether the template passes all validations
+        violations:
+          type: array
+          description: List of validation violations
+          items:
+            $ref: '#/components/schemas/ValidationViolation'
+        warnings:
+          type: array
+          description: List of non-critical warnings
+          items:
+            $ref: '#/components/schemas/ValidationViolation'
+
+    Template:
+      allOf:
+        - $ref: '#/components/schemas/TemplateCreateRequest'
+        - type: object
+          required:
+            - template_id
+            - status
+            - created_at
+            - updated_at
+          properties:
+            template_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [active, deprecated, draft]
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            deprecated_at:
+              type: string
+              format: date-time
+            superseded_by:
+              type: string
+              format: uuid
+              description: Template ID that supersedes this one
+
+    TemplateListResponse:
+      type: object
+      required:
+        - templates
+        - pagination
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Template'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total_items:
+              type: integer
+            total_pages:
+              type: integer
+
+    TradeCreateRequest:
+      type: object
+      required:
+        - template_id
+        - notional_amount
+        - trade_date
+        - client_id
+      properties:
+        template_id:
+          type: string
+          format: uuid
+          description: Reference to FCN template
+        notional_amount:
+          type: number
+          format: double
+          description: Notional amount in base currency
+          minimum: 0
+        trade_date:
+          type: string
+          format: date
+          description: Trade execution date
+        client_id:
+          type: string
+          description: Client identifier
+        initial_fixing:
+          type: object
+          description: Initial underlying prices
+          additionalProperties:
+            type: number
+            format: double
+        metadata:
+          type: object
+          description: Additional trade metadata
+          additionalProperties: true
+
+    TradeCreateResponse:
+      type: object
+      required:
+        - trade_id
+        - status
+        - created_at
+      properties:
+        trade_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active]
+        created_at:
+          type: string
+          format: date-time
+
+    TradeUpdateRequest:
+      type: object
+      properties:
+        metadata:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, terminated, matured]
+
+    Trade:
+      allOf:
+        - $ref: '#/components/schemas/TradeCreateRequest'
+        - type: object
+          required:
+            - trade_id
+            - status
+            - created_at
+            - updated_at
+          properties:
+            trade_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [active, terminated, matured, knocked_in, knocked_out]
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            maturity_date:
+              type: string
+              format: date
+            termination_date:
+              type: string
+              format: date
+            current_observation_count:
+              type: integer
+              description: Number of observations recorded
+            knocked_in:
+              type: boolean
+              description: Whether barrier has been breached
+            knocked_out:
+              type: boolean
+              description: Whether autocall has been triggered
+            accumulated_coupons:
+              type: number
+              format: double
+              description: Total coupons accumulated
+
+    TradeListResponse:
+      type: object
+      required:
+        - trades
+        - pagination
+      properties:
+        trades:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total_items:
+              type: integer
+            total_pages:
+              type: integer
+
+    ObservationPostRequest:
+      type: object
+      required:
+        - observation_date
+        - underlying_prices
+      properties:
+        observation_date:
+          type: string
+          format: date
+          description: Observation date
+        underlying_prices:
+          type: object
+          description: Map of ticker to price
+          additionalProperties:
+            type: number
+            format: double
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ObservationResult:
+      type: object
+      required:
+        - observation_id
+        - trade_id
+        - observation_date
+        - status
+        - events_triggered
+      properties:
+        observation_id:
+          type: string
+          format: uuid
+        trade_id:
+          type: string
+          format: uuid
+        observation_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [processed, pending, failed]
+        events_triggered:
+          type: array
+          description: Lifecycle events triggered by this observation
+          items:
+            type: string
+            enum: [coupon_paid, barrier_breached, knocked_out, matured]
+        coupon_amount:
+          type: number
+          format: double
+          description: Coupon amount paid (if applicable)
+        barrier_distance:
+          type: number
+          format: double
+          description: Distance to barrier as percentage
+        worst_performing_asset:
+          type: string
+          description: Ticker of worst performing asset
+
+    TradeLifecycleEvent:
+      type: object
+      required:
+        - event_id
+        - trade_id
+        - event_type
+        - event_date
+        - timestamp
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        trade_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          enum: [created, observation_posted, coupon_paid, knocked_in, knocked_out, terminated, matured]
+        event_date:
+          type: string
+          format: date
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          description: Event-specific data
+          additionalProperties: true
+        triggered_by:
+          type: string
+          description: User or system that triggered the event
+
+    TradeLifecycleResponse:
+      type: object
+      required:
+        - trade_id
+        - events
+      properties:
+        trade_id:
+          type: string
+          format: uuid
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradeLifecycleEvent'
+        total_events:
+          type: integer
+
+    ValidationViolation:
+      type: object
+      required:
+        - code
+        - message
+        - severity
+      properties:
+        code:
+          type: string
+          description: Error code from validation catalog
+          enum:
+            - SPEC_VERSION_SUPERSEDED
+            - INVALID_ISSUER
+            - INVALID_STRIKE_ORDER
+            - MISSING_PUT_STRIKE
+            - INVALID_KO_RANGE
+            - MISSING_AUTOCALL_LOGIC
+            - INVALID_MONITORING_TYPE
+            - TEMPLATE_UPDATE_CONFLICT
+            - VALIDATION_FAILED
+            - RATE_LIMIT_EXCEEDED
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
+            - INTERNAL_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+        severity:
+          type: string
+          enum: [error, warning, info]
+        field:
+          type: string
+          description: Field path that caused the violation
+        details:
+          type: object
+          description: Additional context about the violation
+          additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+        - path
+      properties:
+        error:
+          type: string
+          description: Error code
+          enum:
+            - SPEC_VERSION_SUPERSEDED
+            - INVALID_ISSUER
+            - INVALID_STRIKE_ORDER
+            - MISSING_PUT_STRIKE
+            - INVALID_KO_RANGE
+            - MISSING_AUTOCALL_LOGIC
+            - INVALID_MONITORING_TYPE
+            - TEMPLATE_UPDATE_CONFLICT
+            - VALIDATION_FAILED
+            - RATE_LIMIT_EXCEEDED
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
+            - INTERNAL_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          description: API path that generated the error
+        violations:
+          type: array
+          description: Detailed validation violations (if applicable)
+          items:
+            $ref: '#/components/schemas/ValidationViolation'
+        trace_id:
+          type: string
+          description: Request trace ID for debugging
+
+tags:
+  - name: Templates
+    description: FCN template management operations
+  - name: Trades
+    description: FCN trade lifecycle operations
+  - name: Observations
+    description: Market observation data submission
+  - name: Lifecycle
+    description: Trade lifecycle event tracking
