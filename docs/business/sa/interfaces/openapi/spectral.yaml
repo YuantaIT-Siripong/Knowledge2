@@ -1,0 +1,160 @@
+extends:
+  - "spectral:oas"
+
+formats:
+  - "oas3"
+
+rules:
+  oas3-info-contact:
+    description: "Info object should define contact for accountability."
+    given: $.info
+    severity: warn
+    then:
+      field: contact
+      function: truthy
+
+  oas3-info-license:
+    description: "License should be declared (internal or proprietary)."
+    given: $.info
+    severity: warn
+    then:
+      field: license
+      function: truthy
+
+  fcn-governance-extension-present:
+    description: "x-governance extension must exist and declare active/superseded versions."
+    severity: error
+    given: $
+    then:
+      field: x-governance
+      function: truthy
+
+  fcn-governance-active-version:
+    description: "x-governance.active_versions must include 1.1.0 (current normative)."
+    severity: error
+    given: $.x-governance.active_versions
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: string
+            const: "1.1.0"
+
+  fcn-governance-superseded-v1:
+    description: "x-governance.superseded_versions must list 1.0.0."
+    severity: warn
+    given: $.x-governance.superseded_versions
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: string
+            const: "1.0.0"
+
+  fcn-bearer-auth-required:
+    description: "Bearer auth security scheme must be defined."
+    severity: error
+    given: $.components.securitySchemes
+    then:
+      field: bearerAuth
+      function: truthy
+
+  fcn-error-response-required-codes:
+    description: "ErrorResponse.error.code enum must include all required FCN codes."
+    severity: error
+    given: $.components.schemas.ErrorResponse.properties.error.properties.code.enum
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          allOf:
+            - contains: { const: "SPEC_VERSION_SUPERSEDED" }
+            - contains: { const: "INVALID_ISSUER" }
+            - contains: { const: "INVALID_STRIKE_ORDER" }
+            - contains: { const: "MISSING_PUT_STRIKE" }
+            - contains: { const: "INVALID_KO_RANGE" }
+            - contains: { const: "MISSING_AUTOCALL_LOGIC" }
+            - contains: { const: "INVALID_MONITORING_TYPE" }
+            - contains: { const: "TEMPLATE_UPDATE_CONFLICT" }
+            - contains: { const: "VALIDATION_FAILED" }
+            - contains: { const: "RATE_LIMIT_EXCEEDED" }
+            - contains: { const: "UNAUTHORIZED" }
+            - contains: { const: "FORBIDDEN" }
+            - contains: { const: "NOT_FOUND" }
+            - contains: { const: "INTERNAL_ERROR" }
+
+  fcn-template-create-version-pattern:
+    description: "TemplateCreateRequest.version must define semantic version pattern."
+    severity: error
+    given: $.components.schemas.TemplateCreateRequest.properties.version
+    then:
+      field: pattern
+      function: truthy
+
+  fcn-trade-create-spec-version-pattern:
+    description: "TradeCreateRequest.spec_version must define semantic version pattern."
+    severity: error
+    given: $.components.schemas.TradeCreateRequest.properties.spec_version
+    then:
+      field: pattern
+      function: truthy
+
+  fcn-list-meta-has-total-templates:
+    description: "TemplateListResponse.meta must include total count."
+    severity: warn
+    given: $.components.schemas.TemplateListResponse.properties.meta.properties
+    then:
+      field: total
+      function: truthy
+
+  fcn-list-meta-has-total-trades:
+    description: "TradeListResponse.meta must include total count."
+    severity: warn
+    given: $.components.schemas.TradeListResponse.properties.meta.properties
+    then:
+      field: total
+      function: truthy
+
+  fcn-error-response-trace-id:
+    description: "ErrorResponse should allow trace_id for correlation."
+    severity: warn
+    given: $.components.schemas.ErrorResponse.properties.error.properties
+    then:
+      field: trace_id
+      function: truthy
+
+  fcn-roadmap-extension-present:
+    description: "x-roadmap extension should be present for future enhancements."
+    severity: warn
+    given: $
+    then:
+      field: x-roadmap
+      function: truthy
+
+  fcn-missing-examples-hint:
+    description: "Schemas lack examples; add them in follow-up PR."
+    severity: hint
+    given: $.components.schemas[*]
+    then:
+      function: falsy
+
+# Potential future rules (commented):
+# fcn-operation-id-unique:
+#   description: "Each operation should have a unique operationId."
+#   severity: warn
+#   given: $.paths[*][*].operationId
+#   then:
+#     function: unique
+
+# fcn-security-declared-per-operation:
+#   description: "Operations must declare security unless public explicitly."
+#   severity: error
+#   given: $.paths[*][*]
+#   then:
+#     field: security
+#     function: truthy
