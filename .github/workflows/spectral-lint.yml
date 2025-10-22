@@ -1,0 +1,57 @@
+name: OpenAPI Spectral Lint
+
+on:
+  pull_request:
+    paths:
+      - "docs/business/sa/interfaces/openapi/fcn-openapi-starter.yaml"
+      - "docs/business/sa/interfaces/openapi/spectral.yaml"
+  push:
+    branches: [ main ]
+    paths:
+      - "docs/business/sa/interfaces/openapi/fcn-openapi-starter.yaml"
+      - "docs/business/sa/interfaces/openapi/spectral.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  spectral-lint:
+    name: Spectral Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Spectral
+        run: |
+          npm install -g @stoplight/spectral-cli
+
+      - name: Lint OpenAPI Spec
+        id: spectral
+        working-directory: docs/business/sa/interfaces/openapi
+        run: |
+          spectral lint fcn-openapi-starter.yaml -r spectral.yaml -f stylish || echo "SPECTRAL_COMPLETED_WITH_ERRORS=true" >> $GITHUB_ENV
+
+      - name: Summarize Results
+        if: always()
+        run: |
+          echo "---- Spectral Summary ----"
+          if [ "${{ env.SPECTRAL_COMPLETED_WITH_ERRORS }}" = "true" ]; then
+            echo "Spectral found errors."
+          else
+            echo "Spectral completed with no blocking errors."
+          fi
+
+      - name: Fail on Errors
+        if: env.SPECTRAL_COMPLETED_WITH_ERRORS == 'true'
+        run: |
+          echo "Spectral linting failed due to errors (policy violation)."
+          exit 1
