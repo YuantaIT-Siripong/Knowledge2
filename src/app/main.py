@@ -6,13 +6,18 @@ and observability integration.
 """
 from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 from src.app.middleware.idempotency import IdempotencyMiddleware
 from src.domain.services.idempotency import IdempotencyService
 from src.infra.idempotency.mssql_store import MSSQLIdempotencyStore
 from src.infra.db.base import SessionLocal
+
+
+def utcnow():
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(timezone.utc)
 
 # Create FastAPI application
 app = FastAPI(
@@ -53,7 +58,7 @@ async def health_check():
         content={
             "status": "healthy",
             "service": "fcn-api",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utcnow().isoformat(),
             "version": "0.1.0"
         }
     )
@@ -72,7 +77,7 @@ async def readiness_check():
         content={
             "status": "ready",
             "service": "fcn-api",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utcnow().isoformat()
         }
     )
 

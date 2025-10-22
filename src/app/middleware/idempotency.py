@@ -4,7 +4,7 @@ Idempotency middleware for FastAPI.
 Intercepts POST requests with Idempotency-Key header and ensures
 idempotent processing with response capture.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 import json
 from fastapi import Request, Response
@@ -14,6 +14,11 @@ from starlette.types import ASGIApp
 import io
 
 from src.domain.services.idempotency import IdempotencyService, IdempotencyRecord
+
+
+def utcnow():
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(timezone.utc)
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
@@ -128,7 +133,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             
             # Store idempotency record
             key_hash = self.idempotency_service.hash_key(idempotency_key)
-            now = datetime.utcnow()
+            now = utcnow()
             record = IdempotencyRecord(
                 key_hash=key_hash,
                 request_fingerprint=request_fingerprint,

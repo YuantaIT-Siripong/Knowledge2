@@ -3,11 +3,16 @@ Redis-backed idempotency store implementation.
 
 Provides fast, ephemeral storage for idempotency keys using Redis.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import json
 import redis
 from src.domain.services.idempotency import IdempotencyStore, IdempotencyRecord
+
+
+def utcnow():
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(timezone.utc)
 
 
 class RedisIdempotencyStore(IdempotencyStore):
@@ -81,7 +86,7 @@ class RedisIdempotencyStore(IdempotencyStore):
         }
         
         # Calculate TTL in seconds
-        ttl_seconds = int((record.expires_at - datetime.utcnow()).total_seconds())
+        ttl_seconds = int((record.expires_at - utcnow()).total_seconds())
         if ttl_seconds > 0:
             self.redis.setex(
                 redis_key,

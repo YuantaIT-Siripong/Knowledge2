@@ -3,11 +3,16 @@ MSSQL-backed idempotency store implementation.
 
 Provides durable storage for idempotency keys using Microsoft SQL Server.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 from src.domain.services.idempotency import IdempotencyStore, IdempotencyRecord
 from src.infra.db.models import IdempotencyKeyORM
+
+
+def utcnow():
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(timezone.utc)
 
 
 class MSSQLIdempotencyStore(IdempotencyStore):
@@ -39,7 +44,7 @@ class MSSQLIdempotencyStore(IdempotencyStore):
         with self.session_factory() as session:
             orm_record = session.query(IdempotencyKeyORM).filter(
                 IdempotencyKeyORM.key_hash == key_hash,
-                IdempotencyKeyORM.expires_at > datetime.utcnow()
+                IdempotencyKeyORM.expires_at > utcnow()
             ).first()
             
             if not orm_record:
